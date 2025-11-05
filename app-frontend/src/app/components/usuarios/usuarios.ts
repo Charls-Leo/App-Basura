@@ -5,7 +5,8 @@ import { UsuarioService } from '../../services/usuario';
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
+  templateUrl: './usuarios.component.html'
 })
 export class UsuariosComponent implements OnInit {
   usuarios: any[] = [];
@@ -18,3 +19,4 @@ export class UsuariosComponent implements OnInit {
     });
   }
 }
+
