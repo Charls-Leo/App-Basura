@@ -1,0 +1,67 @@
+name: Deploy app-basura (Angular) a servidor Apache
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      LOCAL_BUILD_DIR: dist/app-frontend/browser
+      DEPLOY_PATH: ${{ secrets.SSH_DEPLOY_PATH }}
+      BASE_HREF: "/leo_site/"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build Angular (prod)
+        run: npx ng build --configuration production --base-href "${BASE_HREF}"
+
+      - name: Preparar clave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Subir build al servidor (scp)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key_path: ~/.ssh/deploy_key
+          port: ${{ secrets.SSH_PORT }}
+          source: "${{ env.LOCAL_BUILD_DIR }}/*"
+          target: "~/releases/app-basura-${{ github.run_id }}"
+          strip_components: 0
+
+      - name: Mover a ${DEPLOY_PATH} y reiniciar Apache
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key_path: ~/.ssh/deploy_key
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            RELEASE_DIR=~/releases/app-basura-${{ github.run_id }}
+            sudo mkdir -p "${{ env.DEPLOY_PATH }}"
+            sudo rm -rf "${{ env.DEPLOY_PATH }}/*"
+            sudo cp -r "$RELEASE_DIR"/* "${{ env.DEPLOY_PATH }}/"
+            sudo chown -R www-data:www-data "${{ env.DEPLOY_PATH }}"
+            sudo find "${{ env.DEPLOY_PATH }}" -type d -exec chmod 755 {} \;
+            sudo find "${{ env.DEPLOY_PATH }}" -type f -exec chmod 644 {} \;
+            sudo systemctl restart apache2
+            echo "Despliegue completado"
