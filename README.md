@@ -1,4 +1,4 @@
-# ♻️ App-Basura — Plataforma de Gestión de Residuos
+# ♻️ EcoRecolecta — Plataforma de Gestión de Residuos
 
 Aplicación web desarrollada para optimizar el **reporte y seguimiento de puntos de basura** en la ciudad.  
 Permite que los usuarios comuniquen incidencias de residuos y los gestores supervisen su recolección desde un panel central.
