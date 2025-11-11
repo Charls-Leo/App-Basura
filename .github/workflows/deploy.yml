@@ -72,4 +72,4 @@ jobs:
             sudo find "${{ env.DEPLOY_PATH }}" -type d -exec chmod 755 {} \;
             sudo find "${{ env.DEPLOY_PATH }}" -type f -exec chmod 644 {} \;
             sudo systemctl restart apache2
-            echo "Despliegue completado"
+            echo "Despliegue completado" 
