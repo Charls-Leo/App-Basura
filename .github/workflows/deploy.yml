@@ -10,7 +10,7 @@ jobs:
 
     env:
       # Carpeta que genera tu build (por tu angular.json con nombre "app-frontend")
-      LOCAL_BUILD_DIR: dist/app-frontend/browser
+      LOCAL_BUILD_DIR: app-frontend/dist/app-frontend/browser
       # Ruta final donde Apache sirve el sitio
       DEPLOY_PATH: /var/www/leo_site
       BASE_HREF: "/leo_site/"
@@ -31,9 +31,11 @@ jobs:
           npm -v
 
       - name: Instalar dependencias
+        working-directory: app-frontend
         run: npm ci
 
       - name: Build Angular (prod)
+        working-directory: app-frontend
         run: |
           # usar el CLI correcto incluso si no está en devDependencies
           npx -p @angular/cli@latest ng version
