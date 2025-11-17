@@ -14,7 +14,7 @@ app.use('/api', healthRoutes);
 
 // Ruta principal de prueba
 app.get('/', (req, res) => {
-  res.send('API Backend App Basura - ¡Funciona!');
+  res.send('API Backend EcoRecolecta - ¡Funciona!');
 });
 
 // Manejo de errores 404
