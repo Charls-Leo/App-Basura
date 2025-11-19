@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
-const { 
-  registrarVehiculo, 
-  obtenerVehiculos, 
-  actualizarVehiculo 
-} = require('../controllers/vehiculosController');
+const { registrarVehiculo, obtenerVehiculos, actualizarVehiculo, eliminarVehiculo } = require('../controllers/vehiculosController');
 
 // Registrar vehículo
 router.post('/registro', registrarVehiculo);
@@ -13,7 +8,10 @@ router.post('/registro', registrarVehiculo);
 // Listar vehículos
 router.get('/', obtenerVehiculos);
 
-// Editar vehículo
-router.put('/editar/:id', actualizarVehiculo);
+// Actualizar vehículo
+router.put('/:id', actualizarVehiculo);
+
+// Eliminar vehículo
+router.delete('/:id', eliminarVehiculo);
 
 module.exports = router;
