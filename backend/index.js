@@ -1,28 +1,31 @@
-// src/index.js
 require('dotenv').config();
 const express = require('express');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-// Middleware para leer JSON en las solicitudes
+// Middleware para leer JSON
 app.use(express.json());
 
 // Importar rutas
-const healthRoutes = require('./src/routes/health');
-app.use('/api', healthRoutes);
+const healthRoutes = require('./routes/health');
+const vehiculosRoutes = require('./routes/vehiculos');  // <--- FALTABA ESTO
 
-// Ruta principal de prueba
+// Registrar rutas
+app.use('/api', healthRoutes);
+app.use('/api/vehiculos', vehiculosRoutes);  // <--- MUY IMPORTANTE
+
+// Ruta principal
 app.get('/', (req, res) => {
   res.send('API Backend EcoRecolecta - ¡Funciona!');
 });
 
-// Manejo de errores 404
+// Manejo de errores
 app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-// Iniciar el servidor
+// Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
