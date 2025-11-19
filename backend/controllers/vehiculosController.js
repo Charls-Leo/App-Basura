@@ -9,7 +9,6 @@ const registrarVehiculo = async (req, res) => {
       return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
 
-    // Validar que no exista la placa
     const existe = await pool.query(
       'SELECT * FROM vehiculos WHERE placa = $1',
       [placa]
@@ -53,7 +52,6 @@ const actualizarVehiculo = async (req, res) => {
       return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
 
-    // Verificar si el vehículo existe
     const existe = await pool.query(
       'SELECT * FROM vehiculos WHERE id = $1',
       [id]
@@ -63,7 +61,6 @@ const actualizarVehiculo = async (req, res) => {
       return res.status(404).json({ error: 'Vehículo no encontrado' });
     }
 
-    // Actualizar
     const actualizado = await pool.query(
       `UPDATE vehiculos 
        SET placa = $1, tipo = $2, capacidad = $3 
@@ -83,4 +80,34 @@ const actualizarVehiculo = async (req, res) => {
   }
 };
 
-module.exports = { registrarVehiculo, obtenerVehiculos, actualizarVehiculo };
+// Eliminar vehículo
+const eliminarVehiculo = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existe = await pool.query(
+      'SELECT * FROM vehiculos WHERE id = $1',
+      [id]
+    );
+
+    if (existe.rows.length === 0) {
+      return res.status(404).json({ error: 'Vehículo no encontrado' });
+    }
+
+    await pool.query('DELETE FROM vehiculos WHERE id = $1', [id]);
+
+    res.json({ mensaje: 'Vehículo eliminado correctamente' });
+
+  } catch (error) {
+    console.error('Error al eliminar vehículo:', error);
+    res.status(500).json({ error: 'Error al eliminar vehículo' });
+  }
+};
+
+// EXPORTAR TODO
+module.exports = { 
+  registrarVehiculo, 
+  obtenerVehiculos, 
+  actualizarVehiculo,
+  eliminarVehiculo
+};
