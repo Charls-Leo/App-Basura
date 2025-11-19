@@ -5,12 +5,11 @@ const registrarVehiculo = async (req, res) => {
   try {
     const { placa, tipo, capacidad } = req.body;
 
-    // Validación
     if (!placa || !tipo || !capacidad) {
       return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
 
-    // Validar unicidad
+    // Validar que no exista la placa
     const existe = await pool.query(
       'SELECT * FROM vehiculos WHERE placa = $1',
       [placa]
@@ -20,7 +19,6 @@ const registrarVehiculo = async (req, res) => {
       return res.status(400).json({ error: 'La placa ya está registrada' });
     }
 
-    // Insertar en la BD
     const nuevo = await pool.query(
       'INSERT INTO vehiculos (placa, tipo, capacidad) VALUES ($1, $2, $3) RETURNING *',
       [placa, tipo, capacidad]
@@ -37,7 +35,7 @@ const registrarVehiculo = async (req, res) => {
 // Listar vehículos
 const obtenerVehiculos = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM vehiculos');
+    const result = await pool.query('SELECT * FROM vehiculos ORDER BY id ASC');
     res.json(result.rows);
   } catch (error) {
     console.error('Error al obtener vehículos:', error);
@@ -45,4 +43,44 @@ const obtenerVehiculos = async (req, res) => {
   }
 };
 
-module.exports = { registrarVehiculo, obtenerVehiculos };
+// Actualizar vehículo
+const actualizarVehiculo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { placa, tipo, capacidad } = req.body;
+
+    if (!placa || !tipo || !capacidad) {
+      return res.status(400).json({ error: 'Faltan datos obligatorios' });
+    }
+
+    // Verificar si el vehículo existe
+    const existe = await pool.query(
+      'SELECT * FROM vehiculos WHERE id = $1',
+      [id]
+    );
+
+    if (existe.rows.length === 0) {
+      return res.status(404).json({ error: 'Vehículo no encontrado' });
+    }
+
+    // Actualizar
+    const actualizado = await pool.query(
+      `UPDATE vehiculos 
+       SET placa = $1, tipo = $2, capacidad = $3 
+       WHERE id = $4
+       RETURNING *`,
+      [placa, tipo, capacidad, id]
+    );
+
+    res.json({
+      mensaje: 'Vehículo actualizado correctamente',
+      vehiculo: actualizado.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error al actualizar vehículo:', error);
+    res.status(500).json({ error: 'Error al actualizar vehículo' });
+  }
+};
+
+module.exports = { registrarVehiculo, obtenerVehiculos, actualizarVehiculo };
