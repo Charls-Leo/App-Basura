@@ -7,14 +7,28 @@
 
   <ul class="nav-menu" [class.open]="mobileMenuOpen">
     <li class="nav-item">
-      <a class="nav-link" (click)="closeMobileMenu()">Inicio</a>
+      <!-- Inicio vuelve a la raíz (landing) -->
+      <a
+        class="nav-link"
+        routerLink="/"
+        (click)="closeMobileMenu()"
+      >
+        Inicio
+      </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" (click)="closeMobileMenu()">Mapa</a>
+      <!-- Mapa navega a la página del mapa -->
+      <a
+        class="nav-link"
+        routerLink="/mapa"
+        (click)="closeMobileMenu()"
+      >
+        Mapa
+      </a>
     </li>
     <li class="nav-item">
       <a class="nav-link" (click)="closeMobileMenu()">Rutas</a>
-    </li>       
+    </li>
     <li class="nav-item">
       <a class="nav-link" (click)="closeMobileMenu()">Camiones</a>
     </li>
