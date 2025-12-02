@@ -1,80 +1,87 @@
-name: Deploy leo_site (EcoRecolecta) Angular a servidor Apache
+name: 🚀 Deploy Frontend to Apache2 VM
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: production
 
-    env:
-      # Carpeta generada por Angular tras la build
-      LOCAL_BUILD_DIR: app-frontend/dist/app-frontend/browser
-      # Ruta final del sitio en el servidor
-      DEPLOY_PATH: /var/www/leo_site
-      BASE_HREF: "/leo_site/"
 
     steps:
-      - name: Checkout
+      # ----------------- CHECKOUT -----------------
+      - name: 🧩 Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      # ----------------- NODE -----------------
+      - name: ⚙ Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
 
-      - name: Mostrar versiones
+      # ----------------- DEPENDENCIAS -----------------
+      - name: 💡 Instalar Angular CLI global
+        run: npm install -g @angular/cli
+
+      - name: 📦 Instalar dependencias frontend
         run: |
-          node -v
-          npm -v
+          cd app-frontend
+          npm install
 
-      - name: Instalar dependencias
-        working-directory: app-frontend
-        run: npm ci
-
-      - name: Build Angular (producción)
-        working-directory: app-frontend
+      # ----------------- BUILD FRONTEND -----------------
+      - name: 🏗 Build frontend
         run: |
-          npx -p @angular/cli@latest ng version
-          npx -p @angular/cli@latest ng build --configuration production --base-href "${BASE_HREF}"
-          echo "📁 Árbol de build generado:"
-          ls -la dist/app-frontend/browser || true
+          cd app-frontend
+          ng build --configuration production --base-href /
 
-      - name: Agregar .htaccess para SPA
+      # ----------------- PREPARAR FRONTEND -----------------
+      - name: 🧩 Preparar archivos frontend
         run: |
-          echo "<IfModule mod_rewrite.c>
-          RewriteEngine On
-          RewriteBase /leo_site/
-          RewriteCond %{REQUEST_FILENAME} -f [OR]
-          RewriteCond %{REQUEST_FILENAME} -d
-          RewriteRule ^ - [L]
-          RewriteRule ^index\\.html$ - [L]
-          RewriteRule . /leo_site/index.html [L]
-          </IfModule>
-          DirectoryIndex index.html
-          ErrorDocument 404 /leo_site/index.html" \
-          > ${{ env.LOCAL_BUILD_DIR }}/.htaccess
+          rm -rf deploy-frontend
+          mkdir deploy-frontend
+          cp -r app-frontend/dist/app-frontend/browser/* deploy-frontend/
+          cp app-frontend/dist/app-frontend/3rdpartylicenses.txt deploy-frontend/ || true
+          cp app-frontend/dist/app-frontend/prerendered-routes.json deploy-frontend/ || true
 
-      - name: Subir build al servidor (rsync)
-        uses: burnett01/rsync-deployments@5.2
-        with:
-          switches: -avz --delete
-          path: ${{ env.LOCAL_BUILD_DIR }}/
-          remote_path: ${{ env.DEPLOY_PATH }}
-          remote_host: ${{ secrets.DEPLOY_HOST }}
-          remote_user: ${{ secrets.DEPLOY_USER }}
-          remote_key: ${{ secrets.DEPLOY_KEY }}
+      # ----------------- DEBUG -----------------
+      - name: 🧾 Ver contenido listo para deploy
+        run: ls -R deploy-frontend
 
-      - name: Verificar despliegue remoto
-        uses: appleboy/ssh-action@v1.2.0
+      # ----------------- LIMPIAR SERVER -----------------
+      - name: 🧹 Limpiar deploy-frontend en el servidor
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
           script: |
-            echo "✅ Archivos en el servidor:"
-            ls -lah ${{ env.DEPLOY_PATH }} | head
-            echo "✅ Despliegue finalizado correctamente"
+            rm -rf /var/www/leo_site/deploy-frontend/*
+            mkdir -p /var/www/leo_site/deploy-frontend
 
+      # ----------------- SUBIR ARCHIVOS -----------------
+      - name: 📤 Subir frontend al servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          source: "deploy-frontend/*"
+          target: "/var/www/leo_site/deploy-frontend/"
+          overwrite: true
+
+      # ----------------- FINAL -----------------
+      - name: ⚙ Configurar permisos finales
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
+          script: |
+            chmod -R 755 /var/www/leo_site/deploy-frontend
+            echo "✔ Deploy completado"

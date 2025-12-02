@@ -1,0 +1,117 @@
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="logo-section">
+    <span class="logo-icon">♻️</span>
+    <span class="logo-text">EcoRecolecta</span>
+  </div>
+
+  <ul class="nav-menu" [class.open]="mobileMenuOpen">
+    <li class="nav-item">
+      <!-- Inicio vuelve a la raíz (landing) -->
+      <a
+        class="nav-link"
+        routerLink="/"
+        (click)="closeMobileMenu()"
+      >
+        Inicio
+      </a>
+    </li>
+    <li class="nav-item">
+      <!-- Mapa navega a la página del mapa -->
+      <a
+        class="nav-link"
+        routerLink="/mapa"
+        (click)="closeMobileMenu()"
+      >
+        Mapa
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" (click)="closeMobileMenu()">Rutas</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" (click)="closeMobileMenu()">Camiones</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" (click)="closeMobileMenu()">Ayuda</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" (click)="closeMobileMenu()">Nosotros</a>
+    </li>
+  </ul>
+
+  <div class="auth-buttons" [class.open]="mobileMenuOpen">
+    <a routerLink="/register" class="btn-register" (click)="closeMobileMenu()">
+      Regístrate
+    </a>
+    <span class="divider">o bien</span>
+    <a routerLink="/login" class="btn-login" (click)="closeMobileMenu()">
+      Iniciar sesión
+    </a>
+  </div>
+
+  <button
+    class="mobile-menu-btn"
+    type="button"
+    (click)="toggleMobileMenu()"
+    aria-label="Abrir menú"
+  >
+    ☰
+  </button>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-content">
+    <h1 class="hero-title">Tu ciudad. Organizada. Sin esfuerzo</h1>
+    <p class="hero-description">
+      Gestiona la recolección de residuos de manera inteligente.
+      Optimiza rutas, monitorea camiones en tiempo real y contribuye
+      a un planeta más limpio. Todo en un solo lugar, absolutamente
+      fácil de usar.
+    </p>
+
+    <!-- CTA lleva al registro -->
+    <a routerLink="/register" class="btn-cta">
+      Registrarse Gratis
+    </a>
+  </div>
+
+  <div class="hero-image">
+    <div class="star-decoration star-1">⭐</div>
+    <div class="star-decoration star-2">⭐</div>
+
+    <div class="mockup-container">
+      <div class="device-mockup">
+        <div class="screen-content">
+          <div class="screen-header">
+            <div class="screen-dot dot-red"></div>
+            <div class="screen-dot dot-yellow"></div>
+            <div class="screen-dot dot-green"></div>
+          </div>
+
+          <div class="dashboard-preview">
+            <div class="dashboard-icon">🚛</div>
+            <h3 class="dashboard-title">Panel de Control</h3>
+            <p class="dashboard-subtitle">Gestión inteligente de residuos</p>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">245</div>
+                <div class="stat-label">Toneladas</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">20</div>
+                <div class="stat-label">Camiones</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">92%</div>
+                <div class="stat-label">Eficiencia</div>
+              </div>
+            </div>
+          </div>
+        </div> <!-- screen-content -->
+      </div> <!-- device-mockup -->
+    </div> <!-- mockup-container -->
+  </div> <!-- hero-image -->
+</section>

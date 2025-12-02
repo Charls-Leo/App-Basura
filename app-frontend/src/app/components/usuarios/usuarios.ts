@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UsuarioService } from '../../services/usuario';
+import { UsuariosService } from '../../services/usuario';
 
 @Component({
   selector: 'app-usuarios',
@@ -8,13 +8,13 @@ import { UsuarioService } from '../../services/usuario';
   imports: [CommonModule],
   templateUrl: './usuarios.component.html'
 })
-export class UsuariosComponent implements OnInit {
+export class UsuarioComponent implements OnInit {
   usuarios: any[] = [];
 
-  constructor(private usuarioService: UsuarioService) {}
+  constructor(private usuarioService: UsuariosService) {}
 
   ngOnInit(): void {
-    this.usuarioService.getUsuarios().subscribe(data => {
+    this.usuarioService.obtenerUsuarios().subscribe(data => {
       this.usuarios = data;
     });
   }
