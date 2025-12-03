@@ -1,4 +1,29 @@
 <h2>Lista de usuarios</h2>
+
+<!-- Mostrar usuarios de tu backend -->
 <ul>
-  <li *ngFor="let usuario of usuarios">{{ usuario.nombre }}</li>
+  <li *ngFor="let u of usuarios">
+    {{ u.nombre || (u.username || u.email) }}
+  </li>
 </ul>
+
+<hr>
+
+<h2>Calles de la API del profesor</h2>
+
+<!-- Mensaje mientras no hay calles -->
+<p *ngIf="calles.length === 0">
+  Cargando calles o no se encontraron datos...
+</p>
+
+<!-- Lista de calles (limitamos a 10 para que no sea enorme) -->
+<ul *ngIf="calles.length > 0">
+  <li *ngFor="let c of calles | slice:0:10">
+    {{ c.nombre }} (ID: {{ c.id }})
+  </li>
+</ul>
+
+<!-- Si quieres ver toda la respuesta cruda para debug -->
+<!--
+<pre>{{ calles | json }}</pre>
+-->

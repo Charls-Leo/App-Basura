@@ -21,5 +21,10 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./app/pages/mapa/mapa').then(m => m.MapaComponent)
   },
+  {
+    path: 'usuarios',
+    loadComponent: () =>
+      import('./components/usuarios/usuarios').then(m => m.UsuarioComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

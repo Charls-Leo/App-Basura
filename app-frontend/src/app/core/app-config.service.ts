@@ -8,15 +8,12 @@ export class AppConfigService {
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   async load(): Promise<void> {
-    // Si estamos en SSR (Node), no uses fetch con ruta relativa.
     if (isPlatformServer(this.platformId)) {
-      // Pon un valor por defecto mientras hidrata en el navegador
       this.cfg = { apiUrl: 'http://72.60.52.112:3000/api' };
       return;
     }
 
     try {
-      // En el navegador usa ruta RELATIVA (sin slash inicial)
       const res = await fetch('assets/config.json', { cache: 'no-store' });
       if (!res.ok) throw new Error('No se pudo cargar config.json');
       this.cfg = await res.json();
