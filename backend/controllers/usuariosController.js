@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken');
 // Registrar usuario
 const registrarUsuario = async (req, res) => {
   try {
-    const { nombre, correo, contrasena, perfil_id } = req.body;
+    const { nombre, correo, contrasena, rol } = req.body;
 
-    if (!nombre || !correo || !contrasena || !perfil_id) {
+    if (!nombre || !correo || !contrasena || !rol) {
       return res.status(400).json({ error: 'Faltan datos obligatorios' });
     }
 
@@ -27,10 +27,10 @@ const registrarUsuario = async (req, res) => {
 
     // Insertar usuario
     const nuevoUsuario = await pool.query(
-      `INSERT INTO usuarios (nombre, correo, contrasena, perfil_id)
+      `INSERT INTO usuarios (nombre, correo, contrasena, rol)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, nombre, correo, perfil_id`,
-      [nombre, correo, hash, perfil_id]
+       RETURNING id, nombre, correo, rol`,
+      [nombre, correo, hash, rol]
     );
 
     res.status(201).json({
@@ -71,7 +71,7 @@ const loginUsuario = async (req, res) => {
 
     // Generar token JWT
     const token = jwt.sign(
-      { id: usuario.rows[0].id, perfil_id: usuario.rows[0].perfil_id },
+      { id: usuario.rows[0].id, rol: usuario.rows[0].rol },
       process.env.JWT_SECRET || 'secret123',
       { expiresIn: '8h' }
     );
@@ -88,7 +88,7 @@ const loginUsuario = async (req, res) => {
 const obtenerUsuarios = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, nombre, correo, perfil_id FROM usuarios ORDER BY id ASC'
+      'SELECT id, nombre, correo, rol FROM usuarios ORDER BY id ASC'
     );
     res.json(result.rows);
   } catch (error) {
@@ -102,7 +102,7 @@ const obtenerUsuarioPorId = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      'SELECT id, nombre, correo, perfil_id FROM usuarios WHERE id = $1',
+      'SELECT id, nombre, correo, rol FROM usuarios WHERE id = $1',
       [id]
     );
     if (result.rows.length === 0) {
@@ -119,7 +119,7 @@ const obtenerUsuarioPorId = async (req, res) => {
 const actualizarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, correo, contrasena, perfil_id } = req.body;
+    const { nombre, correo, contrasena, rol } = req.body;
 
     const usuarioExistente = await pool.query(
       'SELECT * FROM usuarios WHERE id = $1',
@@ -138,10 +138,10 @@ const actualizarUsuario = async (req, res) => {
 
     const actualizado = await pool.query(
       `UPDATE usuarios
-       SET nombre = $1, correo = $2, contrasena = $3, perfil_id = $4
+       SET nombre = $1, correo = $2, contrasena = $3, rol = $4
        WHERE id = $5
-       RETURNING id, nombre, correo, perfil_id`,
-      [nombre, correo, hash, perfil_id, id]
+       RETURNING id, nombre, correo, rol`,
+      [nombre, correo, hash, rol, id]
     );
 
     res.json({

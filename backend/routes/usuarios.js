@@ -13,19 +13,19 @@ const {
 // Registrar nuevo usuario
 router.post('/registro', registrarUsuario);
 
-// Login de usuario
+// Login
 router.post('/login', loginUsuario);
 
-// Listar todos los usuarios
+// Listar todos
 router.get('/', obtenerUsuarios);
 
-// Obtener usuario por ID
+// Obtener por ID
 router.get('/:id', obtenerUsuarioPorId);
 
-// Actualizar usuario
+// Actualizar
 router.put('/:id', actualizarUsuario);
 
-// Eliminar usuario
+// Eliminar
 router.delete('/:id', eliminarUsuario);
 
 module.exports = router;

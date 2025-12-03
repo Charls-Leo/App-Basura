@@ -8,17 +8,11 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // Importar rutas
-const healthRoutes = require('./src/routes/health');
-const vehiculosRoutes = require('./routes/vehiculos'); 
-const conductoresRoutes = require('./routes/conductores');
 const usuariosRoutes = require('./routes/usuarios');
 
-// Registrar rutas
-app.use('/api', healthRoutes);
-app.use('/api/vehiculos', vehiculosRoutes);  // <--- MUY IMPORTANTE
-app.use('/api/conductores', conductoresRoutes);
+// Usar rutas
 app.use('/api/usuarios', usuariosRoutes);
-app.use('/api/rutas', require('./routes/rutas'));
+
 
 // Ruta principal
 app.get('/', (req, res) => {
