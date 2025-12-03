@@ -1,9 +1,138 @@
-<div class="map-page">
-  <div class="map-toolbar">
-    <button (click)="centrarMapa()">Centrar en Buenaventura</button>
-    <button (click)="mostrarRutasDemo()">Ver rutas demo</button>
-    <button (click)="limpiarMapa()">Limpiar mapa</button>
+<!-- Header -->
+<div class="header">
+  <div class="logo-section">
+    <span class="logo-icon">♻️</span>
+    <span class="logo-text">EcoRecolecta</span>
+  </div>
+  <div class="page-title">📍 Mapa de Rutas</div>
+</div>
+
+<!-- Contenedor principal -->
+<div class="map-container">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Rutas Activas</h2>
+      <p>Gestiona y visualiza todas tus rutas</p>
+    </div>
+
+    <div class="routes-list">
+      <div class="route-card active" (click)="focusRoute(1)">
+        <div class="route-header">
+          <span class="route-name">🚛 Ruta Norte</span>
+          <span class="route-status status-active">Activa</span>
+        </div>
+        <div class="route-info">
+          <span class="route-info-item">📍 12 puntos</span>
+          <span class="route-info-item">⏱️ 3.5 hrs</span>
+          <span class="route-info-item">📦 8.2 Ton</span>
+        </div>
+      </div>
+
+      <div class="route-card" (click)="focusRoute(2)">
+        <div class="route-header">
+          <span class="route-name">🚛 Ruta Centro</span>
+          <span class="route-status status-active">Activa</span>
+        </div>
+        <div class="route-info">
+          <span class="route-info-item">📍 18 puntos</span>
+          <span class="route-info-item">⏱️ 4.2 hrs</span>
+          <span class="route-info-item">📦 12.5 Ton</span>
+        </div>
+      </div>
+
+      <div class="route-card" (click)="focusRoute(3)">
+        <div class="route-header">
+          <span class="route-name">🚛 Ruta Sur</span>
+          <span class="route-status status-completed">Completada</span>
+        </div>
+        <div class="route-info">
+          <span class="route-info-item">📍 15 puntos</span>
+          <span class="route-info-item">⏱️ 3.8 hrs</span>
+          <span class="route-info-item">📦 10.1 Ton</span>
+        </div>
+      </div>
+
+      <div class="route-card" (click)="focusRoute(4)">
+        <div class="route-header">
+          <span class="route-name">🚛 Ruta Este</span>
+          <span class="route-status status-pending">Pendiente</span>
+        </div>
+        <div class="route-info">
+          <span class="route-info-item">📍 10 puntos</span>
+          <span class="route-info-item">⏱️ 2.5 hrs</span>
+          <span class="route-info-item">📦 6.8 Ton</span>
+        </div>
+      </div>
+
+      <div class="route-card" (click)="focusRoute(5)">
+        <div class="route-header">
+          <span class="route-name">🚛 Ruta Oeste</span>
+          <span class="route-status status-active">Activa</span>
+        </div>
+        <div class="route-info">
+          <span class="route-info-item">📍 14 puntos</span>
+          <span class="route-info-item">⏱️ 3.9 hrs</span>
+          <span class="route-info-item">📦 9.4 Ton</span>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- Mapa -->
   <div id="mapContainer"></div>
+
+  <!-- Stats Panel -->
+  <div class="stats-panel">
+    <div class="stat-card">
+      <div class="stat-value">5</div>
+      <div class="stat-label">Rutas Totales</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">3</div>
+      <div class="stat-label">Activas Ahora</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">47</div>
+      <div class="stat-label">Puntos Totales</div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <div class="map-controls">
+    <button class="control-btn primary btn-create-route" (click)="crearRuta()">
+      ➕ Crear Ruta
+    </button>
+
+    <button class="control-btn" (click)="limpiarMapa()" title="Limpiar mapa">
+      🗑️
+    </button>
+
+    <div class="zoom-controls">
+      <button class="control-btn" (click)="zoomIn()" title="Acercar">➕</button>
+      <button class="control-btn" (click)="zoomOut()" title="Alejar">➖</button>
+    </div>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="map-legend">
+    <div class="legend-title">Leyenda</div>
+
+    <div class="legend-item">
+      <div class="legend-color truck-marker"></div>
+      <span>Camión en ruta</span>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color point-marker"></div>
+      <span>Punto de recolección</span>
+    </div>
+
+    <div class="legend-item">
+      <div class="legend-color depot-marker"></div>
+      <span>Depósito principal</span>
+    </div>
+  </div>
+
 </div>
