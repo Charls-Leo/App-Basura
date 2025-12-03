@@ -4,6 +4,7 @@ export const environment = {
   
   // Perfil de prueba — este viene literalmente de la documentación
   PROF_PERFIL_ID: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+  apiUrl: 'http://localhost:3000/api'
 };
 
 
