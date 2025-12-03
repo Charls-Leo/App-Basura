@@ -9,10 +9,10 @@
       <div class="logo">♻️</div>
 
       <div class="welcome-text">
-        <h1>¡Esto es EcoRecolectaa! <span class="emoji-wave">👋</span></h1>
+        <h1>¡Esto es EcoRecolecta! <span class="emoji-wave">👋</span></h1>
         <p>
-          Gestiona la recolección de residuos de manera inteligente. 
-          Únete a nuestra comunidad y contribuye a un planeta más limpio 
+          Gestiona la recolección de residuos de manera inteligente.
+          Únete a nuestra comunidad y contribuye a un planeta más limpio
           y sostenible. Cada acción cuenta para el futuro de nuestro medio ambiente.
         </p>
       </div>
@@ -31,27 +31,31 @@
       <div class="login-header">
         <h2>¡Bienvenido de nuevo!</h2>
         <p>
-          ¿No tienes cuenta? <a href="#">Crea una cuenta ahora.</a><br>
+          ¿No tienes cuenta? <a routerLink="/register">Crea una cuenta ahora.</a><br>
           ¡Es GRATIS! Toma menos de un minuto.
         </p>
       </div>
 
-      <!-- Formulario modificado para Angular -->
+      <!-- Formulario Angular -->
       <form (submit)="onSubmit($event)">
         <div class="form-group">
-          <input 
-            type="email" 
-            class="input-field" 
+          <input
+            type="email"
+            class="input-field"
             placeholder="correo@ejemplo.com"
+            [(ngModel)]="correo"
+            name="correo"
             required
           >
         </div>
 
         <div class="form-group">
-          <input 
-            type="password" 
-            class="input-field" 
+          <input
+            type="password"
+            class="input-field"
             placeholder="Contraseña"
+            [(ngModel)]="contrasena"
+            name="contrasena"
             required
           >
         </div>
@@ -75,4 +79,3 @@
     </div>
   </div>
 </div>
-
