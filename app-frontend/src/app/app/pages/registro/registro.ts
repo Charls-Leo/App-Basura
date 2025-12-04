@@ -1,31 +1,55 @@
 import { Component } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { UsuariosService, RegistroRequest } from '../../../services/usuario';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-registro',
-  standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  standalone: true,   
+  imports: [FormsModule, CommonModule], 
   templateUrl: './registro.html',
   styleUrls: ['./registro.css']
 })
 export class RegistroComponent {
+  registroData: RegistroRequest = {
+    email: '',
+    password: '',
+    nombre: '',
+    rol: ''
+  };
 
-  submitForm(form: any) {
-    const { firstName, lastName, email, password, confirmPassword, terms } = form.value;
+  mensaje: string = '';
+  cargando: boolean = false;
 
-    if (password !== confirmPassword) {
-      alert('⚠️ Las contraseñas no coinciden. Por favor, verifica.');
-      return;
-    }
-
-    if (!terms) {
-      alert('⚠️ Debes aceptar los términos y condiciones.');
-      return;
-    }
-
-    alert(`¡Bienvenido a EcoRecolecta, ${firstName}! 🌱\n\nCuenta creada exitosamente.\nEmail: ${email}\n\n(Este es un registro de frontend)`);
-    form.reset();
-  }
+  constructor(private usuariosService: UsuariosService, private router: Router) { {
 }
+
+  }
+  // dentro de la clase RegistroComponent
+  registrar() {
+  console.log("🚀 Método registrar() llamado");
+
+  this.mensaje = '';
+  this.cargando = true;
+
+  console.log("📤 Enviando datos al backend:", this.registroData);
+
+  this.usuariosService.registroUsuario(this.registroData).subscribe({
+    next: (res) => {
+      console.log("✔ RESPUESTA DEL BACKEND:", res);
+      this.mensaje = 'Registro exitoso ✔';
+      setTimeout(() => this.router.navigate(['/login']), 1500);
+    },
+    error: (err) => {
+      console.error("❌ ERROR DEL BACKEND:", err);
+      this.mensaje = 'Error al registrar usuario';
+    },
+    complete: () => {
+      this.cargando = false;
+      console.log("⏳ Petición completada");
+    }
+  });
+}
+}
+

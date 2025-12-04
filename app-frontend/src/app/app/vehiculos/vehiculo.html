@@ -1,0 +1,13 @@
+<h2>Vehículos del perfil</h2>
+
+<button (click)="cargarVehiculos()">🔄 Recargar vehículos</button>
+
+<ul>
+  <li *ngFor="let v of vehiculos">
+    <strong>{{ v.placa }}</strong> — {{ v.marca }} — {{ v.modelo }}
+  </li>
+</ul>
+
+<div *ngIf="vehiculos.length === 0">
+  No tienes vehículos registrados.
+</div>

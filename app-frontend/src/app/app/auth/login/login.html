@@ -6,7 +6,7 @@
 
     <!-- Mensaje de error -->
     <div *ngIf="mensajeError" class="error-message">
-      ⚠️ {{ mensajeError }}
+       {{ mensajeError }}
     </div>
 
     <form (ngSubmit)="iniciarSesion()">
@@ -48,13 +48,6 @@
     <div class="registro-link">
       ¿No tienes cuenta? 
       <a (click)="irARegistro()">Regístrate aquí</a>
-    </div>
-
-    <!-- Ayuda para desarrollo -->
-    <div class="dev-help">
-      <p><strong>💡 Usuarios de prueba:</strong></p>
-      <p>📧 ivan@correo.com / 🔑 123456</p>
-      <p>📧 Leo@example.com / 🔑 123456</p>
     </div>
   </div>
 </div>

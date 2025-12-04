@@ -308,4 +308,17 @@ body {
   .map-legend {
     left: 20px;
   }
+  .logo-section {
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
+
+.logo-section:hover {
+  transform: scale(1.05);
+  opacity: 0.8;
+}
+
+.logo-section:active {
+  transform: scale(0.98);
+}
+} 

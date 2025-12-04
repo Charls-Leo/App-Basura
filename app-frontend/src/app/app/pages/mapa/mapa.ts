@@ -14,8 +14,6 @@ import { Router } from '@angular/router';
 export class MapaComponent implements AfterViewInit, OnDestroy {
 
   map!: L.Map;
-
-  // Para el input con [(ngModel)]
   nombreRuta: string = '';
 
   constructor(private router: Router) {}
@@ -30,44 +28,44 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-private initMap(): void {
-  this.map = L.map('mapContainer', {
-    center: [3.8773, -77.0277], // Buenaventura aprox
-    zoom: 14
-  });
+  private initMap(): void {
+    this.map = L.map('mapContainer', {
+      center: [3.8773, -77.0277],
+      zoom: 14
+    });
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
-  }).addTo(this.map);
-}
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(this.map);
+  }
 
   // =====================
-  // Métodos usados en mapa.html
+  // MÉTODO NUEVO PARA IR AL DASHBOARD
   // =====================
+  irAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
 
+  // =====================
+  // Métodos existentes
+  // =====================
   focusRoute(id: number): void {
     console.log('focusRoute llamada con id:', id);
-    // Más adelante: podrías centrar el mapa en la ruta correspondiente
   }
 
   guardarRuta(): void {
-    // Este guardarRuta era de la lógica vieja.
-    // Ahora la creación real de rutas está en /crear-ruta.
     alert('Para crear y guardar rutas, usa el botón "Crear Ruta" y ve a la pantalla de editor.');
   }
 
   crearRuta(): void {
-    // Navega a la pantalla donde sí se dibuja y guarda la ruta
     this.router.navigate(['/crear-ruta']);
   }
 
   limpiarMapa(): void {
     if (!this.map) return;
 
-    // Elimina todas las capas excepto el tileLayer base
     this.map.eachLayer(layer => {
-      // Mantener solo el tileLayer (que suele tener attribution)
       if (!(layer as any).getAttribution) {
         this.map.removeLayer(layer);
       }

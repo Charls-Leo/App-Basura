@@ -40,7 +40,7 @@ import { UsuariosService } from '../../../services/usuario';
               id="contrasena"
               [(ngModel)]="contrasena"
               name="contrasena"
-              placeholder="Tu contraseña"
+              placeholder="1-6 caracteres"
               [disabled]="cargando"
               required
             />
@@ -58,13 +58,6 @@ import { UsuariosService } from '../../../services/usuario';
         <div class="registro-link">
           ¿No tienes cuenta? 
           <a (click)="irARegistro()">Regístrate aquí</a>
-        </div>
-
-        <!-- Ayuda para desarrollo -->
-        <div class="dev-help">
-          <p><strong>💡 Usuarios de prueba:</strong></p>
-          <p>📧 ivan@correo.com / 🔑 123456</p>
-          <p>📧 Leo@example.com / 🔑 123456</p>
         </div>
       </div>
     </div>

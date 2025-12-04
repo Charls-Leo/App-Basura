@@ -1,0 +1,60 @@
+<!-- dashboard.component.html -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <i class='bx bxs-leaf'></i>
+    <h2>EcoRecolectar</h2>
+  </div>
+
+  <nav class="nav-links">
+    <div class="nav-section">
+      <div class="nav-section-title">Principal</div>
+      <a href="#" class="nav-item active" (click)="$event.preventDefault()">
+        <i class='bx bxs-dashboard'></i>
+        <span>Inicio</span>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Servicios</div>
+      <a href="#" class="nav-item" (click)="irAlMapa(); $event.preventDefault()">
+        <i class='bx bxs-map'></i>
+        <span>Mapa</span>
+      </a>
+      <a href="#" class="nav-item" (click)="irAVehiculos(); $event.preventDefault()">
+        <i class='bx bxs-truck'></i>
+        <span>Vehículos</span>
+      </a>
+      <a href="#" class="nav-item" (click)="$event.preventDefault()">
+        <i class='bx bxs-direction-right'></i>
+        <span>Rutas</span>
+      </a>
+    </div>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <div class="content-wrapper">
+    <div class="hero-title">
+      <i class='bx bxs-leaf'></i>
+      <h1>EcoRecolectar</h1>
+    </div>
+    <p class="hero-subtitle">Tu aliado para un planeta más limpio</p>
+
+    <div class="user-card">
+      <div class="user-header">
+        <div class="user-avatar">
+          <i class='bx bxs-user'></i>
+        </div>
+        <div class="user-info">
+          <h2 class="user-name">{{ nombre }}</h2>
+          <span class="user-role">{{ rol }}</span>
+          <p class="user-email">{{ email }}</p>
+        </div>
+      </div>
+      <button class="btn-logout" (click)="cerrarSesion()">
+        <i class='bx bx-log-out'></i>
+        Cerrar sesión
+      </button>
+    </div>
+  </div>
+</main>

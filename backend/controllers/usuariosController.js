@@ -2,18 +2,18 @@
 const pool = require('../db/connection');
 
 const usuariosController = {
-  // 🔐 LOGIN
+  // LOGIN
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
 
-      console.log('🔍 Intentando login...');
-      console.log('📧 Email recibido:', email);
-      console.log('🔑 Password length:', password ? password.length : 0);
+      console.log(' Intentando login...');
+      console.log(' Email recibido:', email);
+      console.log(' Password length:', password ? password.length : 0);
 
       // Validar que vengan los datos
       if (!email || !password) {
-        console.log('❌ Faltan datos');
+        console.log(' Faltan datos');
         return res.status(400).json({
           error: 'Email y contraseña son requeridos'
         });
@@ -32,14 +32,14 @@ const usuariosController = {
       );
 
       if (resultado.rows.length === 0) {
-        console.log('❌ Usuario no encontrado');
+        console.log(' Usuario no encontrado');
         return res.status(401).json({
           error: 'Correo o contraseña incorrectos'
         });
       }
 
       const usuario = resultado.rows[0];
-      console.log('👤 Usuario encontrado:', { 
+      console.log(' Usuario encontrado:', { 
         id: usuario.id, 
         email: usuario.email,
         passwordEnDB: usuario.password 
@@ -47,7 +47,7 @@ const usuariosController = {
 
       // Comparar contraseña (texto plano por ahora)
       if (usuario.password !== passwordLimpio) {
-        console.log('❌ Contraseña incorrecta');
+        console.log(' Contraseña incorrecta');
         console.log('   Esperada:', usuario.password);
         console.log('   Recibida:', passwordLimpio);
         return res.status(401).json({
@@ -55,7 +55,7 @@ const usuariosController = {
         });
       }
 
-      console.log('✅ Login exitoso para:', usuario.email);
+      console.log('Login exitoso para:', usuario.email);
 
       // Responder con datos del usuario (sin password)
       const { password: _, ...usuarioSinPassword } = usuario;
@@ -66,7 +66,7 @@ const usuariosController = {
       });
 
     } catch (error) {
-      console.error('❌ Error en login:', error);
+      console.error('Error en login:', error);
       res.status(500).json({
         error: 'Error en el servidor',
         detalle: error.message
@@ -74,12 +74,12 @@ const usuariosController = {
     }
   },
 
-  // 📝 REGISTRO
+  //  REGISTRO
   registro: async (req, res) => {
     try {
       const { email, password, rol, nombre } = req.body;
 
-      console.log('📝 Intentando registrar usuario:', email);
+      console.log(' Intentando registrar usuario:', email);
 
       if (!email || !password || !nombre) {
         return res.status(400).json({
@@ -98,7 +98,7 @@ const usuariosController = {
       );
 
       if (existe.rows.length > 0) {
-        console.log('❌ Email ya existe:', emailLimpio);
+        console.log('Email ya existe:', emailLimpio);
         return res.status(409).json({
           error: 'El email ya está registrado'
         });
@@ -110,7 +110,7 @@ const usuariosController = {
         [emailLimpio, passwordLimpio, rol || 'usuario', nombre.trim()]
       );
 
-      console.log('✅ Usuario registrado:', resultado.rows[0].email);
+      console.log('Usuario registrado:', resultado.rows[0].email);
 
       res.status(201).json({
         mensaje: 'Usuario registrado exitosamente',
@@ -118,7 +118,7 @@ const usuariosController = {
       });
 
     } catch (error) {
-      console.error('❌ Error en registro:', error);
+      console.error('Error en registro:', error);
       res.status(500).json({
         error: 'Error en el servidor',
         detalle: error.message
@@ -129,13 +129,13 @@ const usuariosController = {
   // 📋 OBTENER TODOS LOS USUARIOS
   obtenerTodos: async (req, res) => {
     try {
-      console.log('📋 Obteniendo todos los usuarios...');
+      console.log('Obteniendo todos los usuarios...');
       
       const resultado = await pool.query(
         'SELECT id, email, rol, nombre FROM usuarios ORDER BY id'
       );
 
-      console.log(`✅ ${resultado.rows.length} usuarios encontrados`);
+      console.log(`${resultado.rows.length} usuarios encontrados`);
 
       res.json({
         usuarios: resultado.rows,
@@ -143,7 +143,7 @@ const usuariosController = {
       });
 
     } catch (error) {
-      console.error('❌ Error obteniendo usuarios:', error);
+      console.error('Error obteniendo usuarios:', error);
       res.status(500).json({
         error: 'Error en el servidor',
         detalle: error.message
