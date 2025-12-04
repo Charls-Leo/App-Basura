@@ -9,7 +9,7 @@ import { environment } from '../../environments/environments';
 export class ProfesorApiService {
 
   private baseUrl = environment.PROF_API_BASE_URL;
-  private perfilId = environment.PROF_PERFIL_ID;
+  private perfilId = environment.PERFIL_ID;
 
   constructor(private http: HttpClient) {}
 
