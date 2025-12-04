@@ -8,13 +8,14 @@ export interface RutaShape {
   coordinates: [number, number][]; // [lng, lat]
 }
 
+// Payload que mandamos al backend al crear
 export interface CrearRutaPayload {
   nombre_ruta: string;
   perfil_id: string;
   shape: RutaShape;
 }
 
-
+// Lo que nos devuelve el backend cuando listamos rutas
 export interface RutaDTO extends CrearRutaPayload {
   id: number; // el id que pusimos en el backend
 }
@@ -24,8 +25,7 @@ export interface RutaDTO extends CrearRutaPayload {
 })
 export class RutasService {
 
-  // POR AHORA usamos el backend local
-  private readonly API_URL = 'http://localhost:3000/api/rutas';
+  private readonly API_URL = 'https://apirecoleccion.gonzaloandreslucio.com/api/rutas';
 
   constructor(private http: HttpClient) {}
 

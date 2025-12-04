@@ -91,10 +91,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
-  // =====================
-  // Obtener rutas del backend
-  // =====================
-
   private cargarRutas(): void {
     this.rutasService.getRutas().subscribe({
       next: (rutas) => {
@@ -107,9 +103,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
-  // =====================
-  // Manejo de clics en el mapa (modo creación)
-  // =====================
 
   private onMapClick(e: L.LeafletMouseEvent): void {
     if (!this.creandoRuta) return;

@@ -19,10 +19,14 @@ const usuariosRoutes = require('./routes/usuarios');
 // Usar rutas
 app.use('/api/usuarios', usuariosRoutes);
 
+// ======================
+// RUTAS DE RUTAS (en memoria por ahora)
+// ======================
 
+// Array en memoria para guardar rutas creadas
 const rutasMemoria = [];
 
-
+// POST /api/rutas -> crear y guardar ruta en memoria
 app.post('/api/rutas', (req, res) => {
   console.log('📍 Ruta recibida desde el frontend:');
   console.log(req.body);
