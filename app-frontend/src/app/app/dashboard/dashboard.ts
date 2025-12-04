@@ -23,6 +23,9 @@ export class DashboardComponent {
   irAVehiculos() {
     this.router.navigate(['/vehiculos']);
   }
+  irARutas() {
+    this.router.navigate(['/rutas']);
+  }
 
   cerrarSesion() {
     localStorage.clear();

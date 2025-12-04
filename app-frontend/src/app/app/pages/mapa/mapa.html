@@ -1,6 +1,7 @@
 <!-- Header -->
 <div class="header">
   <div class="logo-section" (click)="irDashboard()" style="cursor: pointer;">
+
     <span class="logo-icon">♻️</span>
     <span class="logo-text">EcoRecolecta</span>
   </div>
@@ -44,7 +45,7 @@
 
         <div class="route-info">
           <span class="route-info-item">
-            📍 {{ ruta.shape?.coordinates?.length || 0 }} puntos
+            📍 {{ ruta.shape.coordinates.length || 0 }} puntos
           </span>
         </div>
       </div>
