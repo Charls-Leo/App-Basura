@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 // 🔧 Cambia el puerto si tu backend usa otro (verifica en el backend)
-const API_URL = 'http://localhost:3000/api/usuarios';
+const API_URL = 'http://localhost:3000/api';
 
 export interface LoginRequest {
   email: string;

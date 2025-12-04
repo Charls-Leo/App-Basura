@@ -7,7 +7,11 @@ const PORT = process.env.PORT || 3000;
 
 // Habilitar CORS para permitir peticiones desde Angular
 app.use(cors({
-  origin: 'http://localhost:4200'
+    origin: [
+        'http://localhost:4200',
+        'http://ecorecolecta.eleueleo.com'
+    ],
+    credentials: true
 }));
 
 // Middleware para leer JSON
