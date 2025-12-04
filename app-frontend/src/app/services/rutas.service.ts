@@ -8,11 +8,15 @@ export interface RutaShape {
   coordinates: [number, number][]; // [lng, lat]
 }
 
-// Payload que espera la API del profe
 export interface CrearRutaPayload {
   nombre_ruta: string;
   perfil_id: string;
   shape: RutaShape;
+}
+
+
+export interface RutaDTO extends CrearRutaPayload {
+  id: number; // el id que pusimos en el backend
 }
 
 @Injectable({
@@ -20,12 +24,17 @@ export interface CrearRutaPayload {
 })
 export class RutasService {
 
-  // Ajusta esta URL según dónde tengas expuesta la API del profe o tu proxy
+  // POR AHORA usamos el backend local
   private readonly API_URL = 'http://localhost:3000/api/rutas';
 
   constructor(private http: HttpClient) {}
 
   crearRuta(payload: CrearRutaPayload): Observable<any> {
     return this.http.post(this.API_URL, payload);
+  }
+
+  // Nuevo: obtener todas las rutas
+  getRutas(): Observable<RutaDTO[]> {
+    return this.http.get<RutaDTO[]>(this.API_URL);
   }
 }

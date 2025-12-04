@@ -1,9 +1,9 @@
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import { Router } from '@angular/router';
-import { RutasService, CrearRutaPayload } from '../../../services/rutas.service';
+import { RutasService, CrearRutaPayload, RutaDTO } from '../../../services/rutas.service';
 
 // Ícono personalizado para los marcadores
 const customMarkerIcon = L.icon({
@@ -22,38 +22,41 @@ const customMarkerIcon = L.icon({
   templateUrl: './mapa.html',
   styleUrls: ['./mapa.css']
 })
-export class MapaComponent implements AfterViewInit, OnDestroy {
+export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
   map!: L.Map;
 
-  // Nombre de la ruta actual
+  // Nombre de la ruta actual (en modo creación)
   nombreRuta: string = '';
 
-  // Flag: estamos creando una ruta?
+  // Flag: estamos creando una ruta nueva?
   creandoRuta: boolean = false;
 
-  // Lista de puntos para la ruta actual
+  // Lista de puntos para la ruta actual (modo creación)
   puntosRuta: L.LatLng[] = [];
 
-  // Línea que une los puntos de la ruta actual
+  // Línea que une los puntos de la ruta actual o seleccionada
   rutaPolyline: L.Polyline | null = null;
 
-  // Marcadores (pines) de la ruta actual
+  // Marcadores (pines) de la ruta actual (modo creación)
   puntosMarkers: L.Marker[] = [];
+
+  // ✅ Rutas que vienen del backend para el sidebar
+  rutas: RutaDTO[] = [];
 
   constructor(
     private router: Router,
     private rutasService: RutasService
   ) {}
 
-  // =====================
-  // Ciclo de vida
-  // =====================
+  // Cargar rutas desde el backend
+  ngOnInit(): void {
+    this.cargarRutas();
+  }
 
   ngAfterViewInit(): void {
     this.initMap();
 
-    // Arreglo típico para que Leaflet calcule bien el tamaño dentro de layouts flex
     setTimeout(() => {
       if (this.map) {
         this.map.invalidateSize();
@@ -89,7 +92,23 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   }
 
   // =====================
-  // Manejo de clics en el mapa
+  // Obtener rutas del backend
+  // =====================
+
+  private cargarRutas(): void {
+    this.rutasService.getRutas().subscribe({
+      next: (rutas) => {
+        console.log('Rutas cargadas desde la API:', rutas);
+        this.rutas = rutas;
+      },
+      error: (err) => {
+        console.error('Error al cargar rutas desde la API:', err);
+      }
+    });
+  }
+
+  // =====================
+  // Manejo de clics en el mapa (modo creación)
   // =====================
 
   private onMapClick(e: L.LeafletMouseEvent): void {
@@ -116,17 +135,37 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   }
 
   // =====================
+  // Mostrar una ruta guardada al hacer clic en el sidebar
+  // =====================
+
+  mostrarRuta(ruta: RutaDTO): void {
+    if (!this.map || !ruta.shape || !ruta.shape.coordinates) return;
+
+    // Salimos de modo creación para no mezclar
+    this.creandoRuta = false;
+
+    // Limpiar cualquier cosa que haya en el mapa (ruta anterior)
+    this.limpiarSoloCapas();
+
+    // Convertir [lng, lat] -> L.LatLng
+    const latLngs = ruta.shape.coordinates.map(([lng, lat]) => L.latLng(lat, lng));
+
+    // Dibujar la polyline de la ruta seleccionada
+    this.rutaPolyline = L.polyline(latLngs).addTo(this.map);
+
+    // Ajustar el mapa para que se vea completa
+    this.map.fitBounds(this.rutaPolyline.getBounds());
+  }
+
+  // =====================
   // Métodos usados en mapa.html
   // =====================
 
   focusRoute(id: number): void {
     console.log('focusRoute llamada con id:', id);
-    // Más adelante: centrar en la ruta seleccionada desde la API
   }
 
-  // Guardar ruta: ahora también hace POST a /api/rutas
   guardarRuta(): void {
-    // 1. Validaciones básicas
     if (!this.creandoRuta) {
       alert('Primero activa "Crear Ruta" para empezar a dibujar una ruta.');
       return;
@@ -142,7 +181,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    // 2. Convertir puntos Leaflet -> [lng, lat] para GeoJSON
     const coordinates = this.puntosRuta.map(p => [p.lng, p.lat] as [number, number]);
 
     const shape = {
@@ -150,22 +188,23 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
       coordinates
     };
 
-    // 3. Armar payload para la API
     const payload: CrearRutaPayload = {
       nombre_ruta: this.nombreRuta,
-      perfil_id: 'a4cdc1ca-5e37-40b1-8a4b-d26237e25142', // luego vendrá del login
+      perfil_id: 'a4cdc1ca-5e37-40b1-8a4b-d26237e25142',
       shape
     };
 
     console.log('======== ENVIANDO RUTA A API /api/rutas ========');
     console.log(JSON.stringify(payload, null, 2));
 
-    // 4. Llamar al servicio HTTP
     this.rutasService.crearRuta(payload).subscribe({
       next: (resp) => {
         console.log('Respuesta de la API al crear ruta:', resp);
         alert('✅ Ruta guardada correctamente en la API.');
         this.creandoRuta = false;
+
+        // Recargar la lista de rutas para que aparezca en el sidebar
+        this.cargarRutas();
       },
       error: (err) => {
         console.error('Error al crear ruta en la API:', err);
@@ -175,7 +214,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  // Activar modo creación de ruta
   onCrearRuta(): void {
     const nombre = window.prompt('Escribe el nombre para la nueva ruta:');
 
@@ -189,14 +227,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     // Limpiar puntos y polyline anteriores
     this.puntosRuta = [];
 
-    if (this.rutaPolyline) {
-      this.map.removeLayer(this.rutaPolyline);
-      this.rutaPolyline = null;
-    }
-
-    // Quitar marcadores anteriores del mapa
-    this.puntosMarkers.forEach(m => this.map.removeLayer(m));
-    this.puntosMarkers = [];
+    this.limpiarSoloCapas();
 
     alert(
       `Modo creación de ruta activado para: "${this.nombreRuta}".\n\n` +
@@ -204,26 +235,25 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  // Limpiar la ruta actual del mapa
-  limpiarMapa(): void {
-    if (!this.map) return;
-
-    // 1. Quitar la polyline de la ruta actual, si existe
+  // Limpia capas dibujadas (polyline y marcadores) pero no resetea todo el estado
+  private limpiarSoloCapas(): void {
     if (this.rutaPolyline) {
       this.map.removeLayer(this.rutaPolyline);
       this.rutaPolyline = null;
     }
 
-    // 2. Quitar todos los marcadores de la ruta actual
     this.puntosMarkers.forEach(marker => {
       this.map.removeLayer(marker);
     });
     this.puntosMarkers = [];
+  }
 
-    // 3. Limpiar los puntos almacenados
+  limpiarMapa(): void {
+    if (!this.map) return;
+
+    this.limpiarSoloCapas();
+
     this.puntosRuta = [];
-
-    // 4. Salir del modo creación y resetear el nombre
     this.creandoRuta = false;
     this.nombreRuta = '';
 

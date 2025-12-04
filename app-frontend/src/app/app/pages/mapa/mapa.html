@@ -17,68 +17,41 @@
       <p>Gestiona y visualiza todas tus rutas</p>
     </div>
 
+    <!-- 🟩 LISTA DINÁMICA DE RUTAS -->
     <div class="routes-list">
-      <div class="route-card active" (click)="focusRoute(1)">
+
+      <!-- Si no hay rutas -->
+      <div *ngIf="rutas.length === 0" class="route-card empty">
         <div class="route-header">
-          <span class="route-name">🚛 Ruta Norte</span>
-          <span class="route-status status-active">Activa</span>
+          <span class="route-name">Aún no hay rutas creadas</span>
         </div>
         <div class="route-info">
-          <span class="route-info-item">📍 12 puntos</span>
-          <span class="route-info-item">⏱️ 3.5 hrs</span>
-          <span class="route-info-item">📦 8.2 Ton</span>
+          <span class="route-info-item">
+            Usa el botón "Crear Ruta" para registrar la primera.
+          </span>
         </div>
       </div>
 
-      <div class="route-card" (click)="focusRoute(2)">
+      <!-- Rutas reales -->
+      <div
+        class="route-card"
+        *ngFor="let ruta of rutas"
+        (click)="mostrarRuta(ruta)"
+      >
         <div class="route-header">
-          <span class="route-name">🚛 Ruta Centro</span>
-          <span class="route-status status-active">Activa</span>
+          <span class="route-name">🚛 {{ ruta.nombre_ruta }}</span>
         </div>
-        <div class="route-info">
-          <span class="route-info-item">📍 18 puntos</span>
-          <span class="route-info-item">⏱️ 4.2 hrs</span>
-          <span class="route-info-item">📦 12.5 Ton</span>
-        </div>
-      </div>
 
-      <div class="route-card" (click)="focusRoute(3)">
-        <div class="route-header">
-          <span class="route-name">🚛 Ruta Sur</span>
-          <span class="route-status status-completed">Completada</span>
-        </div>
         <div class="route-info">
-          <span class="route-info-item">📍 15 puntos</span>
-          <span class="route-info-item">⏱️ 3.8 hrs</span>
-          <span class="route-info-item">📦 10.1 Ton</span>
-        </div>
-      </div>
-
-      <div class="route-card" (click)="focusRoute(4)">
-        <div class="route-header">
-          <span class="route-name">🚛 Ruta Este</span>
-          <span class="route-status status-pending">Pendiente</span>
-        </div>
-        <div class="route-info">
-          <span class="route-info-item">📍 10 puntos</span>
-          <span class="route-info-item">⏱️ 2.5 hrs</span>
-          <span class="route-info-item">📦 6.8 Ton</span>
-        </div>
-      </div>
-
-      <div class="route-card" (click)="focusRoute(5)">
-        <div class="route-header">
-          <span class="route-name">🚛 Ruta Oeste</span>
-          <span class="route-status status-active">Activa</span>
-        </div>
-        <div class="route-info">
-          <span class="route-info-item">📍 14 puntos</span>
-          <span class="route-info-item">⏱️ 3.9 hrs</span>
-          <span class="route-info-item">📦 9.4 Ton</span>
+          <span class="route-info-item">
+            📍 {{ ruta.shape?.coordinates?.length || 0 }} puntos
+          </span>
         </div>
       </div>
     </div>
-  </div>
+    <!-- FIN LISTA DINÁMICA -->
+
+  </div> <!-- FIN SIDEBAR -->
 
   <!-- Centro: mapa -->
   <div id="mapContainer"></div>
@@ -86,23 +59,25 @@
   <!-- Panel derecho: resumen + controles -->
   <div class="right-panel">
 
-    <!-- Stats (antes flotaban sobre el mapa) -->
+    <!-- Stats -->
     <div class="stats-panel">
       <div class="stat-card">
-        <div class="stat-value">5</div>
+        <div class="stat-value">{{ rutas.length }}</div>
         <div class="stat-label">Rutas Totales</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">3</div>
-        <div class="stat-label">Activas Ahora</div>
+        <div class="stat-value">
+          {{ rutas.length > 0 ? rutas[0].shape.coordinates.length : 0 }}
+        </div>
+        <div class="stat-label">Puntos Totales</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">47</div>
-        <div class="stat-label">Puntos Totales</div>
+        <div class="stat-value">–</div>
+        <div class="stat-label">Activas Ahora</div>
       </div>
     </div>
 
-    <!-- Controles en columna -->
+    <!-- Controles -->
     <div class="controls-panel">
       <button class="control-btn primary btn-create-route" (click)="onCrearRuta()">
         ➕ Crear Ruta
@@ -112,10 +87,7 @@
         💾 Guardar Ruta
       </button>
 
-      <button
-        class="control-btn trash-btn"
-        (click)="limpiarMapa()"
-        title="Limpiar mapa">
+      <button class="control-btn trash-btn" (click)="limpiarMapa()" title="Limpiar mapa">
         🗑️
       </button>
 
@@ -127,4 +99,8 @@
         ➖
       </button>
     </div>
+
+  </div> <!-- FIN RIGHT PANEL -->
+
+</div> <!-- FIN CONTENEDOR PRINCIPAL -->
 

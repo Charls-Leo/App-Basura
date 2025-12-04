@@ -19,15 +19,30 @@ const usuariosRoutes = require('./routes/usuarios');
 // Usar rutas
 app.use('/api/usuarios', usuariosRoutes);
 
-// Ruta para crear rutas (provisional para pruebas)
+
+const rutasMemoria = [];
+
+
 app.post('/api/rutas', (req, res) => {
   console.log('📍 Ruta recibida desde el frontend:');
-  console.log(req.body);  // Aquí llega el payload con nombre_ruta, perfil_id, shape
+  console.log(req.body);
+
+  const nuevaRuta = {
+    id: rutasMemoria.length + 1, // id simple incremental
+    ...req.body
+  };
+
+  rutasMemoria.push(nuevaRuta);
 
   res.status(201).json({
-    message: 'Ruta recibida correctamente en el backend',
-    data: req.body
+    message: 'Ruta guardada correctamente',
+    data: nuevaRuta
   });
+});
+
+// GET /api/rutas -> devolver todas las rutas guardadas
+app.get('/api/rutas', (req, res) => {
+  res.json(rutasMemoria);
 });
 
 // Ruta principal
