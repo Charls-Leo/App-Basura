@@ -246,9 +246,18 @@ export class LoginComponent {
         localStorage.setItem('usuarioRol', response.usuario.rol);
         
         this.cargando = false;
-        
-        // Redirigir al mapa
-        this.router.navigate(['/dashboard']);
+        // Redirección según el rol// Redirección según el rol
+        const rol = response.usuario.rol;
+
+        if (rol === 'Admin' || rol === 'Administrador') {
+          console.log('➡️ Usuario administrador -> Dashboard');
+          this.router.navigate(['/dashboard']);
+        } else {
+          console.log('➡️ Usuario normal -> Mapa');
+          this.router.navigate(['/mapa']); // <--- RUTA DEL MAPA
+        }
+
+
       },
       error: (error: any) => {
         console.error('❌ Error en login:', error);

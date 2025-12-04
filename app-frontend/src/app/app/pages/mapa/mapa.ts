@@ -49,9 +49,16 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     private rutasService: RutasService
   ) {}
 
-  irAlDashboard(): void {
-    this.router.navigate(['/dashboard']);
+  irDashboard() {
+    const rol = localStorage.getItem('usuarioRol');
+
+    if (rol === 'Admin' || rol === 'Administrador') {
+      this.router.navigate(['/dashboard']);
+    } else {
+      alert("No tienes permisos para acceder al panel de administración.");
+    }
   }
+
 
   // Cargar rutas desde el backend
   ngOnInit(): void {
