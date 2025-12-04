@@ -1,191 +1,155 @@
+// backend/controllers/usuariosController.js
 const pool = require('../db/connection');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 
-// Registrar usuario
-const registrarUsuario = async (req, res) => {
-  try {
-    const { nombre, correo, contrasena, rol } = req.body;
+const usuariosController = {
+  // 🔐 LOGIN
+  login: async (req, res) => {
+    try {
+      const { email, password } = req.body;
 
-    if (!nombre || !correo || !contrasena || !rol) {
-      return res.status(400).json({ error: 'Faltan datos obligatorios' });
+      console.log('🔍 Intentando login...');
+      console.log('📧 Email recibido:', email);
+      console.log('🔑 Password length:', password ? password.length : 0);
+
+      // Validar que vengan los datos
+      if (!email || !password) {
+        console.log('❌ Faltan datos');
+        return res.status(400).json({
+          error: 'Email y contraseña son requeridos'
+        });
+      }
+
+      // Limpiar espacios en blanco
+      const emailLimpio = email.trim().toLowerCase();
+      const passwordLimpio = password.trim();
+
+      console.log('🔍 Buscando usuario con email:', emailLimpio);
+
+      // Buscar usuario
+      const resultado = await pool.query(
+        'SELECT * FROM usuarios WHERE LOWER(email) = $1',
+        [emailLimpio]
+      );
+
+      if (resultado.rows.length === 0) {
+        console.log('❌ Usuario no encontrado');
+        return res.status(401).json({
+          error: 'Correo o contraseña incorrectos'
+        });
+      }
+
+      const usuario = resultado.rows[0];
+      console.log('👤 Usuario encontrado:', { 
+        id: usuario.id, 
+        email: usuario.email,
+        passwordEnDB: usuario.password 
+      });
+
+      // Comparar contraseña (texto plano por ahora)
+      if (usuario.password !== passwordLimpio) {
+        console.log('❌ Contraseña incorrecta');
+        console.log('   Esperada:', usuario.password);
+        console.log('   Recibida:', passwordLimpio);
+        return res.status(401).json({
+          error: 'Correo o contraseña incorrectos'
+        });
+      }
+
+      console.log('✅ Login exitoso para:', usuario.email);
+
+      // Responder con datos del usuario (sin password)
+      const { password: _, ...usuarioSinPassword } = usuario;
+
+      res.json({
+        mensaje: 'Login exitoso',
+        usuario: usuarioSinPassword
+      });
+
+    } catch (error) {
+      console.error('❌ Error en login:', error);
+      res.status(500).json({
+        error: 'Error en el servidor',
+        detalle: error.message
+      });
     }
+  },
 
-    // Verificar si el correo ya existe
-    const existe = await pool.query(
-      'SELECT * FROM usuarios WHERE correo = $1',
-      [correo]
-    );
+  // 📝 REGISTRO
+  registro: async (req, res) => {
+    try {
+      const { email, password, rol, nombre } = req.body;
 
-    if (existe.rows.length > 0) {
-      return res.status(400).json({ error: 'El correo ya está registrado' });
+      console.log('📝 Intentando registrar usuario:', email);
+
+      if (!email || !password || !nombre) {
+        return res.status(400).json({
+          error: 'Email, contraseña y nombre son requeridos'
+        });
+      }
+
+      // Limpiar datos
+      const emailLimpio = email.trim().toLowerCase();
+      const passwordLimpio = password.trim();
+
+      // Verificar si el email ya existe
+      const existe = await pool.query(
+        'SELECT id FROM usuarios WHERE LOWER(email) = $1',
+        [emailLimpio]
+      );
+
+      if (existe.rows.length > 0) {
+        console.log('❌ Email ya existe:', emailLimpio);
+        return res.status(409).json({
+          error: 'El email ya está registrado'
+        });
+      }
+
+      // Insertar nuevo usuario
+      const resultado = await pool.query(
+        'INSERT INTO usuarios (email, password, rol, nombre) VALUES ($1, $2, $3, $4) RETURNING id, email, rol, nombre',
+        [emailLimpio, passwordLimpio, rol || 'usuario', nombre.trim()]
+      );
+
+      console.log('✅ Usuario registrado:', resultado.rows[0].email);
+
+      res.status(201).json({
+        mensaje: 'Usuario registrado exitosamente',
+        usuario: resultado.rows[0]
+      });
+
+    } catch (error) {
+      console.error('❌ Error en registro:', error);
+      res.status(500).json({
+        error: 'Error en el servidor',
+        detalle: error.message
+      });
     }
+  },
 
-    // Encriptar contraseña
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(contrasena, salt);
+  // 📋 OBTENER TODOS LOS USUARIOS
+  obtenerTodos: async (req, res) => {
+    try {
+      console.log('📋 Obteniendo todos los usuarios...');
+      
+      const resultado = await pool.query(
+        'SELECT id, email, rol, nombre FROM usuarios ORDER BY id'
+      );
 
-    // Insertar usuario
-    const nuevoUsuario = await pool.query(
-      `INSERT INTO usuarios (nombre, correo, contrasena, rol)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, nombre, correo, rol`,
-      [nombre, correo, hash, rol]
-    );
+      console.log(`✅ ${resultado.rows.length} usuarios encontrados`);
 
-    res.status(201).json({
-      mensaje: 'Usuario registrado correctamente',
-      usuario: nuevoUsuario.rows[0]
-    });
+      res.json({
+        usuarios: resultado.rows,
+        total: resultado.rows.length
+      });
 
-  } catch (error) {
-    console.error('Error al registrar usuario:', error);
-    res.status(500).json({ error: 'Error al registrar usuario' });
+    } catch (error) {
+      console.error('❌ Error obteniendo usuarios:', error);
+      res.status(500).json({
+        error: 'Error en el servidor',
+        detalle: error.message
+      });
+    }
   }
 };
 
-// Login
-const loginUsuario = async (req, res) => {
-  try {
-    const { correo, contrasena } = req.body;
-
-    if (!correo || !contrasena) {
-      return res.status(400).json({ error: 'Faltan datos obligatorios' });
-    }
-
-    // Verificar correo
-    const usuario = await pool.query(
-      'SELECT * FROM usuarios WHERE correo = $1',
-      [correo]
-    );
-
-    if (usuario.rows.length === 0) {
-      return res.status(400).json({ error: 'Usuario no encontrado' });
-    }
-
-    // Comparar contraseña
-    const validPass = await bcrypt.compare(contrasena, usuario.rows[0].contrasena);
-    if (!validPass) {
-      return res.status(400).json({ error: 'Contraseña incorrecta' });
-    }
-
-    // Generar token JWT
-    const token = jwt.sign(
-      { id: usuario.rows[0].id, rol: usuario.rows[0].rol },
-      process.env.JWT_SECRET || 'secret123',
-      { expiresIn: '8h' }
-    );
-
-    res.json({ mensaje: 'Login exitoso', token });
-
-  } catch (error) {
-    console.error('Error en login:', error);
-    res.status(500).json({ error: 'Error en login' });
-  }
-};
-
-// Listar todos los usuarios
-const obtenerUsuarios = async (req, res) => {
-  try {
-    const result = await pool.query(
-      'SELECT id, nombre, correo, rol FROM usuarios ORDER BY id ASC'
-    );
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error al obtener usuarios:', error);
-    res.status(500).json({ error: 'Error al obtener usuarios' });
-  }
-};
-
-// Obtener usuario por ID
-const obtenerUsuarioPorId = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query(
-      'SELECT id, nombre, correo, rol FROM usuarios WHERE id = $1',
-      [id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Error al obtener usuario:', error);
-    res.status(500).json({ error: 'Error al obtener usuario' });
-  }
-};
-
-// Actualizar usuario
-const actualizarUsuario = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nombre, correo, contrasena, rol } = req.body;
-
-    const usuarioExistente = await pool.query(
-      'SELECT * FROM usuarios WHERE id = $1',
-      [id]
-    );
-
-    if (usuarioExistente.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    let hash = usuarioExistente.rows[0].contrasena;
-    if (contrasena) {
-      const salt = await bcrypt.genSalt(10);
-      hash = await bcrypt.hash(contrasena, salt);
-    }
-
-    const actualizado = await pool.query(
-      `UPDATE usuarios
-       SET nombre = $1, correo = $2, contrasena = $3, rol = $4
-       WHERE id = $5
-       RETURNING id, nombre, correo, rol`,
-      [nombre, correo, hash, rol, id]
-    );
-
-    res.json({
-      mensaje: 'Usuario actualizado correctamente',
-      usuario: actualizado.rows[0]
-    });
-
-  } catch (error) {
-    console.error('Error al actualizar usuario:', error);
-    res.status(500).json({ error: 'Error al actualizar usuario' });
-  }
-};
-
-// Eliminar usuario
-const eliminarUsuario = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const existe = await pool.query(
-      'SELECT * FROM usuarios WHERE id = $1',
-      [id]
-    );
-
-    if (existe.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-
-    await pool.query(
-      'DELETE FROM usuarios WHERE id = $1',
-      [id]
-    );
-
-    res.json({ mensaje: 'Usuario eliminado correctamente' });
-  } catch (error) {
-    console.error('Error al eliminar usuario:', error);
-    res.status(500).json({ error: 'Error al eliminar usuario' });
-  }
-};
-
-module.exports = {
-  registrarUsuario,
-  loginUsuario,
-  obtenerUsuarios,
-  obtenerUsuarioPorId,
-  actualizarUsuario,
-  eliminarUsuario
-};
+module.exports = usuariosController;

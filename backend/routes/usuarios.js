@@ -1,31 +1,16 @@
+// backend/routes/usuarios.js
 const express = require('express');
 const router = express.Router();
+const pool = require('../db/connection');
 
 const {
-  registrarUsuario,
-  loginUsuario,
-  obtenerUsuarios,
-  obtenerUsuarioPorId,
-  actualizarUsuario,
-  eliminarUsuario
+  registro,
+  login,
+  obtenerTodos
 } = require('../controllers/usuariosController');
 
-// Registrar nuevo usuario
-router.post('/registro', registrarUsuario);
-
-// Login
-router.post('/login', loginUsuario);
-
-// Listar todos
-router.get('/', obtenerUsuarios);
-
-// Obtener por ID
-router.get('/:id', obtenerUsuarioPorId);
-
-// Actualizar
-router.put('/:id', actualizarUsuario);
-
-// Eliminar
-router.delete('/:id', eliminarUsuario);
+router.post('/registro', registro);
+router.post('/login', login);
+router.get('/', obtenerTodos);
 
 module.exports = router;
