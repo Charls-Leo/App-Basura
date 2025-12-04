@@ -64,6 +64,18 @@ export class LeafletMapService {
     }
   }
 
+  zoomIn(): void {
+  if (this.map) {
+    this.map.zoomIn();
+  }
+}
+
+zoomOut(): void {
+  if (this.map) {
+    this.map.zoomOut();
+  }
+}
+
   addMarker(
     lat: number,
     lng: number,
