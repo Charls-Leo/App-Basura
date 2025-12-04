@@ -17,10 +17,7 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": [{ "glob": "**/*", "input": "public" }],
-            "styles": ["src/styles.css"],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
-            "ssr": { "entry": "src/server.ts" }
+            "styles": ["src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -30,7 +27,7 @@
               ],
               "outputHashing": "all",
               "optimization": {
-                "fonts": { "inline": false }  
+                "fonts": { "inline": false }
               }
             },
             "development": {
