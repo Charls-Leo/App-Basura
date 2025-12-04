@@ -50,6 +50,10 @@ export class RegistroComponent {
       console.log("⏳ Petición completada");
     }
   });
-}
+  }
+  irALogin() {
+  this.router.navigate(['/login']);
+  }
+
 }
 

@@ -1,0 +1,13 @@
+.rutas-container {
+  padding: 20px;
+}
+
+.placeholder-box {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f4f4f4;
+  border-radius: 10px;
+  border: 1px dashed #888;
+  text-align: center;
+  color: #555;
+}
