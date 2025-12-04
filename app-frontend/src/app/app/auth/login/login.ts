@@ -246,17 +246,19 @@ export class LoginComponent {
         localStorage.setItem('usuarioRol', response.usuario.rol);
         
         this.cargando = false;
-        // Redirección según el rol// Redirección según el rol
-        const rol = response.usuario.rol;
+        // después de guardar en localStorage
+        console.log('ROL guardado en localStorage ->', localStorage.getItem('usuarioRol'));
 
-        if (rol === 'Admin' || rol === 'Administrador') {
-          console.log('➡️ Usuario administrador -> Dashboard');
-          this.router.navigate(['/dashboard']);
-        } else {
+        // Redirección según el rol
+      const rol = (response.usuario.rol || '').toLowerCase();
+
+      if (rol === 'admin' || rol === 'administrador') {
+            console.log('➡️ Usuario administrador -> Dashboard');
+            this.router.navigate(['/dashboard']);
+      } else {
           console.log('➡️ Usuario normal -> Mapa');
-          this.router.navigate(['/mapa']); // <--- RUTA DEL MAPA
-        }
-
+          this.router.navigate(['/mapa']);
+      }
 
       },
       error: (error: any) => {
