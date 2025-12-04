@@ -49,6 +49,10 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     private rutasService: RutasService
   ) {}
 
+  irAlDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
   // Cargar rutas desde el backend
   ngOnInit(): void {
     this.cargarRutas();
