@@ -1,45 +1,116 @@
-<h2>Vehículos del perfil</h2>
+<!-- Elementos decorativos flotantes -->
+<div class="floating-decoration">🌿</div>
+<div class="floating-decoration">♻️</div>
+<div class="floating-decoration">🌱</div>
 
-<button (click)="nuevoVehiculo()">➕ Nuevo Vehículo</button>
-<button (click)="cargarVehiculos()">🔄 Recargar</button>
-
-<hr>
-
-<h3>{{ modoEditar ? "Editar Vehículo" : "Nuevo Vehículo" }}</h3>
-
-<form (ngSubmit)="guardarVehiculo()">
-  <label>Placa:</label>
-  <input type="text" [(ngModel)]="vehiculoForm.placa" name="placa" required>
-
-  <label>Marca:</label>
-  <input type="text" [(ngModel)]="vehiculoForm.marca" name="marca" required>
-
-  <label>Modelo:</label>
-  <input type="text" [(ngModel)]="vehiculoForm.modelo" name="modelo" required>
-
-  <label>Activo:</label>
-  <select [(ngModel)]="vehiculoForm.activo" name="activo">
-    <option [value]="true">Activo</option>
-    <option [value]="false">Inactivo</option>
-  </select>
-
-  <button type="submit">{{ modoEditar ? "Guardar Cambios" : "Crear Vehículo" }}</button>
-</form>
-
-<hr>
-
-<h3>Lista de Vehículos</h3>
-
-<div *ngFor="let v of vehiculos" class="vehiculo-card">
-  <strong>{{ v.placa }}</strong> — {{ v.marca }} — {{ v.modelo }}
-  <span> | Estado: <b>{{ v.activo ? "Activo" : "Inactivo" }}</b></span>
-
-  <br>
-
-  <button (click)="editarVehiculo(v)">✏ Editar</button>
-  <button (click)="eliminarVehiculo(v.id)">🗑 Eliminar</button>
+<!-- Header -->
+<div class="header">
+  <div class="logo-section">
+    <span class="logo-icon">♻️</span>
+    <span class="logo-text">EcoRecolecta</span>
+  </div>
+  <div class="page-title">🚛 Gestión de Vehículos</div>
 </div>
 
-<div *ngIf="vehiculos.length === 0">
-  No tienes vehículos registrados.
+<!-- Contenedor -->
+<div class="container">
+  <div class="page-header">
+    <h1>Vehículos del perfil</h1>
+    <p>Gestiona todos los vehículos de recolección con un estilo moderno</p>
+  </div>
+
+  <!-- Botones -->
+  <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+    <button class="btn-add" (click)="openModal()">
+      ➕ Nuevo Vehículo
+    </button>
+    <button class="btn-add btn-reload" (click)="cargarVehiculos()">
+      🔄 Recargar
+    </button>
+  </div>
+
+  <!-- Lista -->
+  <div class="vehicles-grid" *ngIf="vehiculos.length > 0">
+    <div class="vehicle-card" *ngFor="let v of vehiculos">
+      <div class="vehicle-icon">🚛</div>
+
+      <div class="vehicle-plate">{{ v.plate }}</div>
+
+      <div class="vehicle-info">
+        <div><strong>Marca:</strong> {{ v.brand }}</div>
+        <div><strong>Modelo:</strong> {{ v.model }}</div>
+        <div>
+          <strong>Estado:</strong>
+          <span [style.color]="getStatusColor(v.status)" style="font-weight: 600;">
+            {{ v.status }}
+          </span>
+        </div>
+      </div>
+
+      <div class="vehicle-actions">
+        <button class="btn-edit" (click)="openModal(v)">✏️ Editar</button>
+        <button class="btn-delete" (click)="deleteVehicle(v.id)">🗑️ Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="empty-state" *ngIf="vehiculos.length === 0">
+    <div class="empty-state-icon">🚛</div>
+    <h3>No hay vehículos registrados</h3>
+    <p>Comienza agregando tu primer vehículo de recolección</p>
+    <button class="btn-add" (click)="openModal()">
+      ➕ Agregar Primer Vehículo
+    </button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" [class.active]="isModalOpen" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ getModalTitle() }}</h2>
+      <button class="btn-close" (click)="closeModal()">×</button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #formRef="ngForm">
+      <div class="form-group">
+        <label>Placa</label>
+        <input
+          type="text"
+          [(ngModel)]="vehicleForm.plate"
+          name="plate"
+          required
+          maxlength="7"
+          placeholder="ABC-123"
+          style="text-transform: uppercase;"
+          (input)="formatPlate($event)"
+          [disabled]="modoEditar"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Marca</label>
+        <input type="text" [(ngModel)]="vehicleForm.brand" name="brand" required>
+      </div>
+
+      <div class="form-group">
+        <label>Modelo</label>
+        <input type="text" [(ngModel)]="vehicleForm.model" name="model" required>
+      </div>
+
+      <div class="form-group">
+        <label>Estado</label>
+        <select [(ngModel)]="vehicleForm.status" name="status" class="form-select">
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+          <option value="Mantenimiento">En Mantenimiento</option>
+        </select>
+      </div>
+
+      <button class="btn-submit" type="submit">
+        {{ getSubmitButtonText() }}
+      </button>
+    </form>
+  </div>
 </div>
