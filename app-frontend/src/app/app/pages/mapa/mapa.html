@@ -10,7 +10,7 @@
 <!-- Contenedor principal -->
 <div class="map-container">
 
-  <!-- Sidebar -->
+  <!-- Sidebar izquierda: rutas activas -->
   <div class="sidebar">
     <div class="sidebar-header">
       <h2>Rutas Activas</h2>
@@ -80,59 +80,50 @@
     </div>
   </div>
 
-  <!-- Mapa -->
+  <!-- Centro: mapa -->
   <div id="mapContainer"></div>
 
-  <!-- Stats Panel -->
-  <div class="stats-panel">
-    <div class="stat-card">
-      <div class="stat-value">5</div>
-      <div class="stat-label">Rutas Totales</div>
+  <!-- Panel derecho: resumen + controles -->
+  <div class="right-panel">
+
+    <!-- Stats (antes flotaban sobre el mapa) -->
+    <div class="stats-panel">
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Rutas Totales</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Activas Ahora</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">47</div>
+        <div class="stat-label">Puntos Totales</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value">3</div>
-      <div class="stat-label">Activas Ahora</div>
+
+    <!-- Controles en columna -->
+    <div class="controls-panel">
+      <button class="control-btn primary btn-create-route" (click)="onCrearRuta()">
+        ➕ Crear Ruta
+      </button>
+
+
+      <button
+        class="control-btn trash-btn"
+        (click)="limpiarMapa()"
+        title="Limpiar mapa">
+        🗑️
+      </button>
+
+      <button class="control-btn" (click)="zoomIn()" title="Acercar">
+        ➕
+      </button>
+
+      <button class="control-btn" (click)="zoomOut()" title="Alejar">
+        ➖
+      </button>
     </div>
-    <div class="stat-card">
-      <div class="stat-value">47</div>
-      <div class="stat-label">Puntos Totales</div>
-    </div>
+
   </div>
-
-  <!-- Controles -->
-  <div class="map-controls">
-    <button class="control-btn primary btn-create-route" (click)="crearRuta()">
-      ➕ Crear Ruta
-    </button>
-
-    <button class="control-btn" (click)="limpiarMapa()" title="Limpiar mapa">
-      🗑️
-    </button>
-
-    <div class="zoom-controls">
-      <button class="control-btn" (click)="zoomIn()" title="Acercar">➕</button>
-      <button class="control-btn" (click)="zoomOut()" title="Alejar">➖</button>
-    </div>
-  </div>
-
-  <!-- Leyenda -->
-  <div class="map-legend">
-    <div class="legend-title">Leyenda</div>
-
-    <div class="legend-item">
-      <div class="legend-color truck-marker"></div>
-      <span>Camión en ruta</span>
-    </div>
-
-    <div class="legend-item">
-      <div class="legend-color point-marker"></div>
-      <span>Punto de recolección</span>
-    </div>
-
-    <div class="legend-item">
-      <div class="legend-color depot-marker"></div>
-      <span>Depósito principal</span>
-    </div>
-  </div>
-
 </div>
