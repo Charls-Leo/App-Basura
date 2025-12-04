@@ -1,40 +1,36 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// GeoJSON LineString
+// GeoJSON LineString que nosotros enviamos al crear ruta
 export interface RutaShape {
   type: 'LineString';
   coordinates: [number, number][]; // [lng, lat]
 }
 
-// Payload que mandamos al backend al crear
 export interface CrearRutaPayload {
   nombre_ruta: string;
   perfil_id: string;
   shape: RutaShape;
 }
 
-// Lo que nos devuelve el backend cuando listamos rutas
-export interface RutaDTO extends CrearRutaPayload {
-  id: number; // el id que pusimos en el backend
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class RutasService {
-
-  private readonly API_URL = 'https://apirecoleccion.gonzaloandreslucio.com/api/rutas';
+  private API_URL = 'https://apirecoleccion.gonzaloandreslucio.com/api';
 
   constructor(private http: HttpClient) {}
 
-  crearRuta(payload: CrearRutaPayload): Observable<any> {
-    return this.http.post(this.API_URL, payload);
+  // GET /api/rutas?perfil_id=...
+  // No asumimos formato, devolvemos "any" y normalizamos en el componente
+  getRutas(perfilId: string): Observable<any> {
+    const params = new HttpParams().set('perfil_id', perfilId);
+    return this.http.get(`${this.API_URL}/rutas`, { params });
   }
 
-  // Nuevo: obtener todas las rutas
-  getRutas(): Observable<RutaDTO[]> {
-    return this.http.get<RutaDTO[]>(this.API_URL);
+  // POST /api/rutas
+  crearRuta(payload: CrearRutaPayload): Observable<any> {
+    return this.http.post(`${this.API_URL}/rutas`, payload);
   }
 }

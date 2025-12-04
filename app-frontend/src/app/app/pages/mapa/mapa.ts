@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
 import { Router } from '@angular/router';
-import { RutasService, CrearRutaPayload, RutaDTO } from '../../../services/rutas.service';
+import {
+  RutasService,
+  CrearRutaPayload,
+  RutaShape
+} from '../../../services/rutas.service';
 
 // Ícono personalizado para los marcadores
 const customMarkerIcon = L.icon({
@@ -22,8 +26,9 @@ const customMarkerIcon = L.icon({
   templateUrl: './mapa.html',
   styleUrls: ['./mapa.css']
 })
-export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
-
+export class MapaComponent
+  implements AfterViewInit, OnDestroy, OnInit
+{
   map!: L.Map;
 
   // Nombre de la ruta actual (en modo creación)
@@ -41,8 +46,11 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   // Marcadores (pines) de la ruta actual (modo creación)
   puntosMarkers: L.Marker[] = [];
 
-  // ✅ Rutas que vienen del backend para el sidebar
-  rutas: RutaDTO[] = [];
+  // Rutas normalizadas que usamos en el sidebar
+  rutas: any[] = [];
+
+  // Perfil fijo por ahora (el mismo que usas en el POST)
+  private readonly PERFIL_ID = 'a4cdc1ca-5e37-40b1-8a4b-d26237e25142';
 
   constructor(
     private router: Router,
@@ -55,12 +63,14 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     if (rol === 'Admin' || rol === 'Administrador') {
       this.router.navigate(['/dashboard']);
     } else {
-      alert("No tienes permisos para acceder al panel de administración.");
+      alert('No tienes permisos para acceder al panel de administración.');
     }
   }
 
+  // =====================
+  // Ciclo de vida
+  // =====================
 
-  // Cargar rutas desde el backend
   ngOnInit(): void {
     this.cargarRutas();
   }
@@ -102,11 +112,53 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
+  // =====================
+  // Cargar rutas desde la API del profe
+  // =====================
+
   private cargarRutas(): void {
-    this.rutasService.getRutas().subscribe({
-      next: (rutas) => {
-        console.log('Rutas cargadas desde la API:', rutas);
-        this.rutas = rutas;
+    this.rutasService.getRutas(this.PERFIL_ID).subscribe({
+      next: (resp: any) => {
+        console.log('Respuesta cruda de /api/rutas:', resp);
+
+        // Normalizar: sacar un array de la respuesta
+        let lista: any[] = [];
+
+        if (Array.isArray(resp)) {
+          lista = resp;
+        } else if (Array.isArray(resp.data)) {
+          lista = resp.data;
+        } else if (Array.isArray(resp.results)) {
+          lista = resp.results;
+        } else if (Array.isArray(resp.rutas)) {
+          lista = resp.rutas;
+        } else {
+          console.warn('Formato de respuesta no esperado. Usando [].');
+          lista = [];
+        }
+
+        // Asegurarnos de que cada ruta tenga shape como objeto GeoJSON
+        this.rutas = lista.map((r) => {
+          let shape: RutaShape;
+
+          if (typeof r.shape === 'string') {
+            try {
+              shape = JSON.parse(r.shape);
+            } catch (e) {
+              console.error('Error al parsear shape de la ruta', r.id, e);
+              shape = { type: 'LineString', coordinates: [] };
+            }
+          } else {
+            shape = r.shape as RutaShape;
+          }
+
+          return {
+            ...r,
+            shape
+          };
+        });
+
+        console.log('Rutas normalizadas para el sidebar:', this.rutas);
       },
       error: (err) => {
         console.error('Error al cargar rutas desde la API:', err);
@@ -114,6 +166,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
+  // =====================
+  // Manejo de clics en el mapa (modo creación)
+  // =====================
 
   private onMapClick(e: L.LeafletMouseEvent): void {
     if (!this.creandoRuta) return;
@@ -142,7 +197,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   // Mostrar una ruta guardada al hacer clic en el sidebar
   // =====================
 
-  mostrarRuta(ruta: RutaDTO): void {
+  mostrarRuta(ruta: any): void {
     if (!this.map || !ruta.shape || !ruta.shape.coordinates) return;
 
     // Salimos de modo creación para no mezclar
@@ -152,7 +207,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.limpiarSoloCapas();
 
     // Convertir [lng, lat] -> L.LatLng
-    const latLngs = ruta.shape.coordinates.map(([lng, lat]) => L.latLng(lat, lng));
+    const latLngs = ruta.shape.coordinates.map(
+      ([lng, lat]: [number, number]) => L.latLng(lat, lng)
+    );
 
     // Dibujar la polyline de la ruta seleccionada
     this.rutaPolyline = L.polyline(latLngs).addTo(this.map);
@@ -162,7 +219,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   // =====================
-  // Métodos usados en mapa.html
+  // Botones y acciones
   // =====================
 
   focusRoute(id: number): void {
@@ -185,16 +242,18 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       return;
     }
 
-    const coordinates = this.puntosRuta.map(p => [p.lng, p.lat] as [number, number]);
+    const coordinates = this.puntosRuta.map(
+      (p) => [p.lng, p.lat] as [number, number]
+    );
 
-    const shape = {
-      type: 'LineString' as const,
+    const shape: RutaShape = {
+      type: 'LineString',
       coordinates
     };
 
     const payload: CrearRutaPayload = {
       nombre_ruta: this.nombreRuta,
-      perfil_id: 'a4cdc1ca-5e37-40b1-8a4b-d26237e25142',
+      perfil_id: this.PERFIL_ID,
       shape
     };
 
@@ -212,7 +271,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       },
       error: (err) => {
         console.error('Error al crear ruta en la API:', err);
-        alert('❌ Ocurrió un error al guardar la ruta. Revisa la consola para más detalles.');
+        alert(
+          '❌ Ocurrió un error al guardar la ruta. Revisa la consola para más detalles.'
+        );
         this.creandoRuta = false;
       }
     });
@@ -235,18 +296,17 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
     alert(
       `Modo creación de ruta activado para: "${this.nombreRuta}".\n\n` +
-      'Ahora haz clic en el mapa para marcar los puntos de la ruta.'
+        'Ahora haz clic en el mapa para marcar los puntos de la ruta.'
     );
   }
 
-  // Limpia capas dibujadas (polyline y marcadores) pero no resetea todo el estado
   private limpiarSoloCapas(): void {
     if (this.rutaPolyline) {
       this.map.removeLayer(this.rutaPolyline);
       this.rutaPolyline = null;
     }
 
-    this.puntosMarkers.forEach(marker => {
+    this.puntosMarkers.forEach((marker) => {
       this.map.removeLayer(marker);
     });
     this.puntosMarkers = [];

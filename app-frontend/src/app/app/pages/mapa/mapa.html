@@ -1,7 +1,6 @@
 <!-- Header -->
-<!-- Header -->
 <div class="header">
-  <div class="logo-section" (click)="irDashboard()"style="cursor: pointer;">
+  <div class="logo-section" (click)="irDashboard()" style="cursor: pointer;">
     <span class="logo-icon">♻️</span>
     <span class="logo-text">EcoRecolecta</span>
   </div>
@@ -68,7 +67,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-value">
-          {{ rutas.length > 0 ? rutas[0].shape.coordinates.length : 0 }}
+          {{ rutas.length > 0 ? (rutas[0].shape?.coordinates?.length || 0) : 0 }}
         </div>
         <div class="stat-label">Puntos Totales</div>
       </div>
