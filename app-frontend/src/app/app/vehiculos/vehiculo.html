@@ -1,12 +1,44 @@
 <h2>Vehículos del perfil</h2>
 
-<button (click)="cargarVehiculos()">🔄 Recargar vehículos</button>
+<button (click)="nuevoVehiculo()">➕ Nuevo Vehículo</button>
+<button (click)="cargarVehiculos()">🔄 Recargar</button>
 
-<ul>
-  <li *ngFor="let v of vehiculos">
-    <strong>{{ v.placa }}</strong> — {{ v.marca }} — {{ v.modelo }}
-  </li>
-</ul>
+<hr>
+
+<h3>{{ modoEditar ? "Editar Vehículo" : "Nuevo Vehículo" }}</h3>
+
+<form (ngSubmit)="guardarVehiculo()">
+  <label>Placa:</label>
+  <input type="text" [(ngModel)]="vehiculoForm.placa" name="placa" required>
+
+  <label>Marca:</label>
+  <input type="text" [(ngModel)]="vehiculoForm.marca" name="marca" required>
+
+  <label>Modelo:</label>
+  <input type="text" [(ngModel)]="vehiculoForm.modelo" name="modelo" required>
+
+  <label>Activo:</label>
+  <select [(ngModel)]="vehiculoForm.activo" name="activo">
+    <option [value]="true">Activo</option>
+    <option [value]="false">Inactivo</option>
+  </select>
+
+  <button type="submit">{{ modoEditar ? "Guardar Cambios" : "Crear Vehículo" }}</button>
+</form>
+
+<hr>
+
+<h3>Lista de Vehículos</h3>
+
+<div *ngFor="let v of vehiculos" class="vehiculo-card">
+  <strong>{{ v.placa }}</strong> — {{ v.marca }} — {{ v.modelo }}
+  <span> | Estado: <b>{{ v.activo ? "Activo" : "Inactivo" }}</b></span>
+
+  <br>
+
+  <button (click)="editarVehiculo(v)">✏ Editar</button>
+  <button (click)="eliminarVehiculo(v.id)">🗑 Eliminar</button>
+</div>
 
 <div *ngIf="vehiculos.length === 0">
   No tienes vehículos registrados.
