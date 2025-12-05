@@ -135,6 +135,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private cargarRutas(): void {
     this.rutasService.getRutas(this.PERFIL_ID).subscribe({
       next: (resp: any) => {
+        console.log('=== DIAGNÓSTICO: Rutas recibidas ===');
         console.log('Respuesta cruda de /api/rutas:', resp);
 
         let lista: any[] = [];
@@ -153,25 +154,69 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
           lista = [];
         }
 
-        // Parsear shape si viene como string y garantizar structure
-        this.rutas = lista.map((r) => {
-          let shape: RutaShape = { type: 'LineString', coordinates: [] };
-          if (r.shape) {
-            if (typeof r.shape === 'string') {
-              try {
-                shape = JSON.parse(r.shape) as RutaShape;
-              } catch (err) {
-                console.error('Error parseando shape string:', err);
-                shape = { type: 'LineString', coordinates: [] };
-              }
-            } else {
-              shape = r.shape as RutaShape;
+        console.log(`📊 Total de rutas recibidas: ${lista.length}`);
+
+        // 🔧 Parsear shape y normalizar coordenadas
+        this.rutas = lista.map((r, index) => {
+          console.log(`\nRuta ${index}: ${r.nombre_ruta}`);
+          console.log(`  - shape (tipo): ${typeof r.shape}`);
+          console.log(`  - shape (valor):`, r.shape);
+
+          let shapeObj: any;
+          
+          // Paso 1: Convertir string a objeto si es necesario
+          if (typeof r.shape === 'string') {
+            try {
+              shapeObj = JSON.parse(r.shape);
+              console.log(`  - shape parseado:`, shapeObj);
+            } catch (err) {
+              console.error(`  ❌ Error parseando shape:`, err);
+              return { ...r, shape: { type: 'LineString', coordinates: [] } };
             }
+          } else {
+            shapeObj = r.shape || { type: 'LineString', coordinates: [] };
           }
-          return { ...r, shape };
+
+          // Paso 2: Normalizar coordenadas según el tipo de geometría
+          let coordinates: [number, number][];
+          
+          if (shapeObj.type === 'LineString') {
+            // LineString: array directo de coordenadas
+            coordinates = shapeObj.coordinates as [number, number][];
+            console.log(`  - Tipo: LineString - ${coordinates.length} puntos directos`);
+          } else if (shapeObj.type === 'MultiLineString') {
+            // MultiLineString: array de arrays
+            const multiCoords = shapeObj.coordinates as [number, number][][];
+            console.log(`  - Tipo: MultiLineString - ${multiCoords.length} líneas`);
+            
+            // 🔧 SOLUCIÓN: Si el backend devuelve MultiLineString con 1 línea,
+            // extraer esa línea. Si hay múltiples líneas, aplanar todas.
+            if (multiCoords.length === 1) {
+              coordinates = multiCoords[0];
+              console.log(`  - Extrayendo única línea: ${coordinates.length} puntos`);
+            } else {
+              // Si hay múltiples líneas, concatenarlas todas
+              coordinates = multiCoords.flat();
+              console.log(`  - Aplanando ${multiCoords.length} líneas: ${coordinates.length} puntos totales`);
+            }
+          } else {
+            console.warn(`⚠️ Tipo de geometría no soportado: ${shapeObj.type}`);
+            coordinates = [];
+          }
+
+          console.log(`  ✅ Coordenadas finales: ${coordinates.length} puntos`);
+
+          // Paso 3: Crear shape normalizado como LineString
+          const shapeNormalizado: RutaShape = {
+            type: 'LineString',
+            coordinates: coordinates
+          };
+
+          return { ...r, shape: shapeNormalizado };
         });
 
-        console.log('Rutas normalizadas para el sidebar:', this.rutas);
+        console.log('\n✅ Rutas normalizadas para el sidebar:', this.rutas);
+        console.log(`📍 Total de rutas en el sidebar: ${this.rutas.length}`);
       },
       error: (err: any) => {
         console.error('Error al cargar rutas desde la API:', err);
@@ -210,6 +255,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   mostrarRuta(ruta: any): void {
     if (!this.map) return;
 
+    console.log('🗺️ Mostrando ruta:', ruta.nombre_ruta);
+    console.log('  - Shape:', ruta.shape);
+
     // Normalizar shape por si acaso
     let shape: RutaShape | null = null;
     if (!ruta) return;
@@ -227,9 +275,12 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     }
 
     if (!shape || !Array.isArray(shape.coordinates) || shape.coordinates.length === 0) {
+      console.warn('⚠️ La ruta no tiene coordenadas válidas');
       this.mostrarToast('La ruta seleccionada no tiene geometría.', 'warning');
       return;
     }
+
+    console.log(`  ✅ Coordenadas a dibujar: ${shape.coordinates.length} puntos`);
 
     // Salimos de modo creación para no mezclar
     this.creandoRuta = false;
@@ -242,6 +293,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       (c: [number, number]) => L.latLng(c[1], c[0])
     );
 
+    console.log(`  📍 LatLngs creados: ${latLngs.length}`);
+
     // Dibujar polyline de la ruta seleccionada
     this.rutaPolyline = L.polyline(latLngs, { color: '#16a34a', weight: 4 }).addTo(this.map);
 
@@ -251,9 +304,12 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       this.puntosMarkers.push(m);
     });
 
+    console.log(`  ✅ Polyline y ${this.puntosMarkers.length} marcadores añadidos al mapa`);
+
     // Ajustar vista al bounds
     try {
       this.map.fitBounds(this.rutaPolyline.getBounds(), { padding: [50, 50] });
+      console.log('  ✅ Vista ajustada al bounds de la ruta');
     } catch (e) {
       console.warn('fitBounds falló:', e);
     }
@@ -292,7 +348,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     };
 
     console.log('======== ENVIANDO RUTA A API /api/rutas ========');
-    console.log(JSON.stringify(payload, null, 2));
+    console.log('Número de puntos:', this.puntosRuta.length);
+    console.log('Payload completo:', JSON.stringify(payload, null, 2));
 
     this.rutasService.crearRuta(payload).subscribe({
       next: (resp: any) => {
@@ -300,6 +357,10 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
         // Normalizar la respuesta según estructura esperada: resp.data o resp
         const nueva = resp?.data ? resp.data : resp;
+
+        console.log('Ruta guardada:', nueva);
+        console.log('Puntos guardados en el backend:', this.puntosRuta.length);
+        console.log(' - nombre:', nueva.nombre_ruta);
 
         // Si la API devuelve shape como string, parsearlo:
         let shapeReturned: RutaShape = { type: 'LineString', coordinates: [] };
