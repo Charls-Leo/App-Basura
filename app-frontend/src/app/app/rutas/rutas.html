@@ -1,9 +1,18 @@
 <div class="rutas-container">
   <h1>🚚 Rutas Registradas</h1>
 
-  <p>Aquí aparecerá la lista de rutas del sistema.</p>
+  <!-- Si NO hay rutas -->
+  <div *ngIf="rutas.length === 0" class="placeholder-box">
+    <p>⚠️ No hay rutas registradas.</p>
+  </div>
 
-  <div class="placeholder-box">
-    <p>⚠️ Aún no hay datos, módulo en construcción...</p>
+  <!-- Lista real -->
+  <div *ngIf="rutas.length > 0" class="lista-rutas">
+    <div class="ruta-card" *ngFor="let r of rutas">
+      <h3>📍 {{ r.nombre_ruta }}</h3>
+      <p><strong>ID:</strong> {{ r.id }}</p>
+      <p><strong>Puntos:</strong> {{ r.shape.coordinates.length }}</p>
+      <p><strong>Última actualización:</strong> {{ r.updated_at | date:'short' }}</p>
+    </div>
   </div>
 </div>
