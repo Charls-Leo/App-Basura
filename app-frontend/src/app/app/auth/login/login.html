@@ -1,12 +1,48 @@
-<!-- src/app/auth/login/login.html -->
+<!-- src/app/auth/login/login.component.html -->
 <div class="login-container">
+  <!-- Iconos de reciclaje flotantes -->
+  <div class="recycle-icons">
+    <div class="recycle-icon">♻️</div>
+    <div class="recycle-icon">🗑️</div>
+    <div class="recycle-icon">🌍</div>
+    <div class="recycle-icon">♻️</div>
+    <div class="recycle-icon">🌿</div>
+    <div class="recycle-icon">🗑️</div>
+  </div>
+
+  <!-- Camión izquierdo -->
+  <svg class="truck-left" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="50" width="120" height="50" rx="5" fill="#ffffff"/>
+    <rect x="140" y="60" width="40" height="40" rx="3" fill="#ffffff"/>
+    <rect x="145" y="65" width="15" height="15" rx="2" fill="#1abc9c"/>
+    <rect x="165" y="65" width="10" height="15" rx="2" fill="#1abc9c"/>
+    <circle cx="50" cy="100" r="15" fill="#34495e"/>
+    <circle cx="50" cy="100" r="8" fill="#7f8c8d"/>
+    <circle cx="150" cy="100" r="15" fill="#34495e"/>
+    <circle cx="150" cy="100" r="8" fill="#7f8c8d"/>
+    <text x="70" y="80" font-size="30" fill="#27ae60">♻️</text>
+  </svg>
+
+  <!-- Camión derecho -->
+  <svg class="truck-right" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="50" width="120" height="50" rx="5" fill="#ffffff"/>
+    <rect x="140" y="60" width="40" height="40" rx="3" fill="#ffffff"/>
+    <rect x="145" y="65" width="15" height="15" rx="2" fill="#1abc9c"/>
+    <rect x="165" y="65" width="10" height="15" rx="2" fill="#1abc9c"/>
+    <circle cx="50" cy="100" r="15" fill="#34495e"/>
+    <circle cx="50" cy="100" r="8" fill="#7f8c8d"/>
+    <circle cx="150" cy="100" r="15" fill="#34495e"/>
+    <circle cx="150" cy="100" r="8" fill="#7f8c8d"/>
+    <text x="70" y="80" font-size="30" fill="#27ae60">♻️</text>
+  </svg>
+
   <div class="login-card">
     <h1>🌱 EcoRecolecta</h1>
     <h2>Iniciar Sesión</h2>
 
     <!-- Mensaje de error -->
     <div *ngIf="mensajeError" class="error-message">
-       {{ mensajeError }}
+      {{ mensajeError }}
     </div>
 
     <form (ngSubmit)="iniciarSesion()">
