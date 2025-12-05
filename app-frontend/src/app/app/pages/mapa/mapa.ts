@@ -152,60 +152,65 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       this.audioTruck = null;
     }
   }
-
   // -------------------
-  // 🔊 Audio del camión
+  // 🔊 Audio del camión — Bocina tipo trompeta “FUM-FUM-FUM”
   // -------------------
   private inicializarAudio(): void {
-    // Crear el sonido de pitido del camión de basura
-    // Usamos Web Audio API para generar un sonido sintético
-    this.audioTruck = new Audio();
-    
-    // URL de sonido de camión de basura (puedes reemplazar con tu propio archivo)
-    // Por ahora usamos un beep sintético
     this.generarSonidoCamion();
   }
 
   private generarSonidoCamion(): void {
-    // Genera un sonido tipo "beep beep" del camión de basura
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioContext();
-      
-      // Función para crear beep
-      const crearBeep = (cuando: number, frecuencia: number, duracion: number) => {
-        const oscilador = audioContext.createOscillator();
-        const ganancia = audioContext.createGain();
-        
-        oscilador.connect(ganancia);
-        ganancia.connect(audioContext.destination);
-        
-        oscilador.frequency.value = frecuencia;
-        oscilador.type = 'square';
-        
-        ganancia.gain.setValueAtTime(0.3, audioContext.currentTime + cuando);
-        ganancia.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + cuando + duracion);
-        
-        oscilador.start(audioContext.currentTime + cuando);
-        oscilador.stop(audioContext.currentTime + cuando + duracion);
+
+      // Bocina estilo camión grande
+      const bocina = (cuando: number, baseFreq: number, duracion: number, volumen: number) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+
+        // Tipo trompeta → onda “sawtooth”
+        osc.type = "sawtooth";
+
+        // Comienza grave
+        osc.frequency.setValueAtTime(baseFreq, audioContext.currentTime + cuando);
+
+        // Caída ligera para realismo (como el aire perdiendo presión)
+        osc.frequency.exponentialRampToValueAtTime(
+         baseFreq * 0.7,
+          audioContext.currentTime + cuando + duracion
+        );
+
+        // Volumen fuerte y realista
+        gain.gain.setValueAtTime(volumen, audioContext.currentTime + cuando);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + cuando + duracion);
+
+        osc.start(audioContext.currentTime + cuando);
+        osc.stop(audioContext.currentTime + cuando + duracion);
       };
 
-      // Reproducir pitido cada 5 segundos cuando el camión esté en movimiento
+      // 🔁 Bocina repetitiva mientras el camión está en movimiento
       this.audioInterval = setInterval(() => {
         if (this.animacionActiva && !this.animacionPausada && audioContext.state === 'running') {
-          // Beep-beep característico del camión de basura
-          crearBeep(0, 800, 0.15);      // Primer beep
-          crearBeep(0.2, 800, 0.15);    // Segundo beep
-          crearBeep(0.4, 600, 0.2);     // Tercer beep más grave
-          
-          console.log('🔊 Beep-beep del camión');
+
+          // SONIDO FUM-FUM-FUUUM (grave, fuerte, estilo trompeta)
+          bocina(0.0, 180, 0.35, 1.2);   // FUM (grave, fuerte)
+          bocina(0.45, 180, 0.35, 1.2);  // FUM
+          bocina(0.9, 150, 0.55, 1.4);   // FUUUUM (más largo y profundo)
+
+         console.log("🔊 Bocina del camión FUM-FUM-FUUUM");
         }
-      }, 5000); // Cada 5 segundos
+      }, 1500); // cada 1.5 segundos
 
     } catch (e) {
-      console.warn('Web Audio API no disponible:', e);
+      console.warn("Web Audio API no disponible:", e);
     }
   }
+
+
 
   // -------------------
   // Init mapa
