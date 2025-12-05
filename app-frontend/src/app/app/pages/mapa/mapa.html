@@ -1,7 +1,6 @@
 <!-- Header -->
 <div class="header">
   <div class="logo-section" (click)="irDashboard()" style="cursor: pointer;">
-
     <span class="logo-icon">♻️</span>
     <span class="logo-text">EcoRecolecta</span>
   </div>
@@ -18,10 +17,8 @@
       <p>Gestiona y visualiza todas tus rutas</p>
     </div>
 
-    <!-- 🟩 LISTA DINÁMICA DE RUTAS -->
+    <!-- LISTA DINÁMICA -->
     <div class="routes-list">
-
-      <!-- Si no hay rutas -->
       <div *ngIf="rutas.length === 0" class="route-card empty">
         <div class="route-header">
           <span class="route-name">Aún no hay rutas creadas</span>
@@ -33,7 +30,6 @@
         </div>
       </div>
 
-      <!-- Rutas reales -->
       <div
         class="route-card"
         *ngFor="let ruta of rutas"
@@ -45,13 +41,11 @@
 
         <div class="route-info">
           <span class="route-info-item">
-            📍 {{ ruta.shape.coordinates.length || 0 }} puntos
+            📍 {{ (ruta.shape?.coordinates?.length) || 0 }} puntos
           </span>
         </div>
       </div>
     </div>
-    <!-- FIN LISTA DINÁMICA -->
-
   </div> <!-- FIN SIDEBAR -->
 
   <!-- Centro: mapa -->
@@ -59,8 +53,6 @@
 
   <!-- Panel derecho: resumen + controles -->
   <div class="right-panel">
-
-    <!-- Stats -->
     <div class="stats-panel">
       <div class="stat-card">
         <div class="stat-value">{{ rutas.length }}</div>
@@ -78,7 +70,6 @@
       </div>
     </div>
 
-    <!-- Controles -->
     <div class="controls-panel">
       <button class="control-btn primary btn-create-route" (click)="onCrearRuta()">
         ➕ Crear Ruta
@@ -100,7 +91,48 @@
         ➖
       </button>
     </div>
-
   </div> <!-- FIN RIGHT PANEL -->
 
 </div> <!-- FIN CONTENEDOR PRINCIPAL -->
+
+<!-- MODAL PARA CREAR RUTA -->
+<div class="modal-overlay" *ngIf="mostrarModalNombreRuta" (click)="cerrarModalOverlay($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🗺️ Crear Nueva Ruta</h2>
+      <button class="modal-close-btn" (click)="cancelarNombreRuta()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <label for="nombreRutaInput" class="modal-label">Nombre de la ruta:</label>
+      <input
+        type="text"
+        id="nombreRutaInput"
+        class="modal-input"
+        [(ngModel)]="nombreRuta"
+        placeholder="Ej: Ruta Zona Norte"
+        (keyup.enter)="confirmarNombreRuta()"
+        autofocus
+      />
+      <p class="modal-hint">💡 Después podrás hacer clic en el mapa para marcar los puntos de la ruta.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-secondary" (click)="cancelarNombreRuta()">
+        Cancelar
+      </button>
+      <button class="modal-btn modal-btn-primary" (click)="confirmarNombreRuta()">
+        ✓ Confirmar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast-container" *ngIf="toastVisible">
+  <div class="toast" [class.warning]="toastType === 'warning'">
+    <div class="toast-icon">{{ toastType === 'warning' ? '⚠️' : '📍' }}</div>
+    <div class="toast-message">{{ toastMessage }}</div>
+    <button class="toast-close" (click)="cerrarToast()">✕</button>
+  </div>
+</div>
