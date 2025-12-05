@@ -33,6 +33,7 @@
       <div
         class="route-card"
         *ngFor="let ruta of rutas"
+        [class.active]="rutaSeleccionada?.id === ruta.id"
         (click)="mostrarRuta(ruta)"
       >
         <div class="route-header">
@@ -60,17 +61,61 @@
       </div>
       <div class="stat-card">
         <div class="stat-value">
-          {{ rutas.length > 0 ? (rutas[0].shape?.coordinates?.length || 0) : 0 }}
+          {{ rutaSeleccionada ? (rutaSeleccionada.shape?.coordinates?.length || 0) : 0 }}
         </div>
-        <div class="stat-label">Puntos Totales</div>
+        <div class="stat-label">Puntos en Ruta</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">–</div>
-        <div class="stat-label">Activas Ahora</div>
+        <div class="stat-value" [style.color]="animacionActiva ? (animacionPausada ? '#f59e0b' : '#16a34a') : '#6b7280'">
+          {{ animacionActiva ? (animacionPausada ? '⏸️' : '🚗') : '⏸️' }}
+        </div>
+        <div class="stat-label">
+          {{ animacionActiva ? (animacionPausada ? 'Pausado' : 'En Recorrido') : 'Detenido' }}
+        </div>
       </div>
     </div>
 
     <div class="controls-panel">
+      <!-- 🚗 Botón: Iniciar Ruta -->
+      <button 
+        class="control-btn vehicle-btn" 
+        (click)="iniciarAnimacionRuta()"
+        [disabled]="!rutaSeleccionada || animacionActiva"
+        title="Iniciar recorrido animado"
+      >
+        🚗 Iniciar Ruta
+      </button>
+
+      <!-- ▶️ NUEVO: Botón Continuar (solo visible cuando está pausado) -->
+      <button 
+        *ngIf="animacionActiva && animacionPausada"
+        class="control-btn continue-btn" 
+        (click)="pausarReanudarAnimacion()"
+        title="Continuar recorrido"
+      >
+        ▶️ Continuar Ruta
+      </button>
+
+      <!-- ⏸️ NUEVO: Botón Pausar (solo visible cuando está en movimiento) -->
+      <button 
+        *ngIf="animacionActiva && !animacionPausada"
+        class="control-btn pause-btn" 
+        (click)="pausarReanudarAnimacion()"
+        title="Pausar recorrido"
+      >
+        ⏸️ Pausar
+      </button>
+
+      <!-- 🛑 Botón: Detener -->
+      <button 
+        class="control-btn stop-btn" 
+        (click)="detenerAnimacion()"
+        [disabled]="!animacionActiva"
+        title="Detener recorrido completamente"
+      >
+        🛑 Detener
+      </button>
+
       <button class="control-btn primary btn-create-route" (click)="onCrearRuta()">
         ➕ Crear Ruta
       </button>

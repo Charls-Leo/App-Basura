@@ -4,21 +4,18 @@
   box-sizing: border-box;
 }
 
-/* Fondo general tipo landing */
 :host {
   display: block;
   min-height: 100vh;
   background: linear-gradient(135deg, #1f9a4b 0%, #28b463 30%, #f4fff8 100%);
 }
 
-/* Solo por consistencia */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   overflow: hidden;
   height: 100vh;
 }
 
-/* Header */
 .header {
   background: white;
   padding: 15px 30px;
@@ -63,7 +60,6 @@ body {
   color: #14532d;
 }
 
-/* Animación de entrada */
 @keyframes slideFadeIn {
   from {
     opacity: 0;
@@ -75,7 +71,6 @@ body {
   }
 }
 
-/* Container principal */
 .map-container {
   display: flex;
   height: calc(100vh - 70px);
@@ -85,7 +80,6 @@ body {
   animation: slideFadeIn 0.5s ease-out;
 }
 
-/* Sidebar izquierda */
 .sidebar {
   width: 360px;
   background: rgba(255, 255, 255, 0.87);
@@ -119,7 +113,6 @@ body {
   padding: 18px 20px 22px;
 }
 
-/* Cards de rutas */
 .route-card {
   background: #f9fafb;
   border-radius: 18px;
@@ -148,8 +141,9 @@ body {
 }
 
 .route-card.active {
-  background: #e8f9ee;
-  border-color: #16a34a;
+  background: #e8f9ee !important;
+  border-color: #16a34a !important;
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25) !important;
 }
 
 .route-header {
@@ -174,29 +168,6 @@ body {
   display: inline-block;
 }
 
-.route-status {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-active {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.status-completed {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.status-pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-/* Mapa sin borde redondeado ni sombra */
 #mapContainer {
   flex: 1;
   height: 100%;
@@ -208,13 +179,19 @@ body {
   background: #e5f9ed;
 }
 
-/* Forzamos que el canvas de Leaflet ocupe todo */
 :host ::ng-deep .leaflet-container {
   width: 100%;
   height: 100%;
 }
 
-/* Panel derecho: stats + controles */
+/* 🚛 Estilos para el marcador del camión - SUAVE, SIN REBOTE */
+:host ::ng-deep .vehicle-marker-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transition: transform 0.1s linear !important;
+}
+
 .right-panel {
   width: 320px;
   background: rgba(255, 255, 255, 0.87);
@@ -227,7 +204,6 @@ body {
   backdrop-filter: blur(6px);
 }
 
-/* Stats dentro del panel derecho */
 .stats-panel {
   display: flex;
   flex-direction: column;
@@ -253,7 +229,6 @@ body {
   margin-top: 4px;
 }
 
-/* Controles en columna dentro del panel derecho */
 .controls-panel {
   margin-top: auto;
   display: flex;
@@ -262,7 +237,6 @@ body {
   align-items: stretch;
 }
 
-/* Botones */
 .control-btn {
   background: white;
   border: none;
@@ -286,7 +260,6 @@ body {
   transform: scale(0.96);
 }
 
-/* Crear ruta: botón largo tipo pill */
 .control-btn.primary {
   background: linear-gradient(135deg, #16a34a, #22c55e);
   color: white;
@@ -303,9 +276,77 @@ body {
   font-size: 20px;
 }
 
-/* ============================================= */
-/* ESTILOS DEL MODAL */
-/* ============================================= */
+.vehicle-btn {
+  background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+  color: white !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  gap: 8px;
+}
+
+.vehicle-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+}
+
+.vehicle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.1) !important;
+}
+
+.continue-btn {
+  background: linear-gradient(135deg, #059669, #10b981) !important;
+  color: white !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  gap: 8px;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.continue-btn:hover {
+  background: linear-gradient(135deg, #047857, #059669) !important;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 10px 26px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 10px 35px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.pause-btn {
+  background: linear-gradient(135deg, #d97706, #f59e0b) !important;
+  color: white !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  gap: 8px;
+}
+
+.pause-btn:hover {
+  background: linear-gradient(135deg, #b45309, #d97706) !important;
+}
+
+.stop-btn {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  color: white !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  gap: 8px;
+}
+
+.stop-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
+}
+
+.stop-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.1) !important;
+}
 
 .modal-overlay {
   position: fixed;
@@ -476,10 +517,6 @@ body {
   transform: translateY(0);
 }
 
-/* ============================================= */
-/* 🆕 TOAST NOTIFICATION (solo para confirmar) */
-/* ============================================= */
-
 .toast-container {
   position: fixed;
   top: 90px;
@@ -512,6 +549,10 @@ body {
   border-left: 4px solid #22c55e;
 }
 
+.toast.warning {
+  border-left-color: #f59e0b;
+}
+
 .toast-icon {
   width: 32px;
   height: 32px;
@@ -523,6 +564,11 @@ body {
   justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
+}
+
+.toast.warning .toast-icon {
+  background: #fef3c7;
+  color: #f59e0b;
 }
 
 .toast-message {
@@ -553,7 +599,6 @@ body {
   color: #4b5563;
 }
 
-/* Responsive básico */
 @media (max-width: 968px) {
   .map-container {
     flex-direction: column;

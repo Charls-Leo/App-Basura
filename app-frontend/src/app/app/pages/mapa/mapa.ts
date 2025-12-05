@@ -6,10 +6,11 @@ import { Router } from '@angular/router';
 import {
   RutasService,
   CrearRutaPayload,
-  RutaShape
+  RutaShape,
+  RegistrarPosicionPayload
 } from '../../../services/rutas.service';
 
-// Ícono personalizado para los marcadores
+// Ícono personalizado para los marcadores de puntos
 const customMarkerIcon = L.icon({
   iconUrl: 'assets/leaflet/marker-icon.png',
   iconRetinaUrl: 'assets/leaflet/marker-icon-2x.png',
@@ -18,6 +19,25 @@ const customMarkerIcon = L.icon({
   iconAnchor: [12, 41],
   shadowSize: [41, 41]
 });
+
+// 🚗 Ícono del vehículo con rotación
+const createVehicleIcon = (rotation: number = 0) => {
+  return L.divIcon({
+    html: `
+      <div style="
+        font-size: 32px; 
+        line-height: 1;
+        transform: rotate(${rotation}deg);
+        transform-origin: center;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+      ">🚛</div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    className: 'vehicle-marker-icon'
+  });
+};
 
 @Component({
   selector: 'app-mapa',
@@ -47,10 +67,32 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   // Rutas normalizadas que usamos en el sidebar
   rutas: any[] = [];
 
+  // Ruta seleccionada actualmente
+  rutaSeleccionada: any = null;
+
+  // Marcador del vehículo
+  vehicleMarker: L.Marker | null = null;
+
+  // 🆕 Control de animación SUAVE
+  animacionActiva: boolean = false;
+  animacionPausada: boolean = false;
+  animacionFrame: any = null;
+  
+  // 🆕 Variables para interpolación suave
+  puntoActualIndex: number = 0;
+  progreso: number = 0; // De 0 a 1 entre dos puntos
+  coordenadasRecorrido: L.LatLng[] = [];
+  velocidadAnimacion: number = 0.005; // Qué tan rápido avanza (ajustable)
+  ultimaPosicionRegistrada: number = 0; // Para registrar cada 2 segundos
+
+  // 🆕 Audio del camión
+  private audioTruck: HTMLAudioElement | null = null;
+  private audioInterval: any = null;
+
   // Control del modal para nombre de ruta
   mostrarModalNombreRuta: boolean = false;
 
-  // 🆕 Sistema de notificaciones toast
+  // Sistema de notificaciones toast
   toastVisible: boolean = false;
   toastMessage: string = '';
   toastType: 'success' | 'warning' = 'success';
@@ -58,7 +100,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   // Timer para auto-ocultar toast
   private toastTimeout: any;
 
-  // Perfil fijo por ahora (el mismo que usas en el POST)
+  // Perfil fijo por ahora
   private readonly PERFIL_ID = 'a4cdc1ca-5e37-40b1-8a4b-d26237e25142';
 
   constructor(
@@ -88,6 +130,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   // -------------------
   ngOnInit(): void {
     this.cargarRutas();
+    this.inicializarAudio();
   }
 
   ngAfterViewInit(): void {
@@ -100,8 +143,68 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
+    this.detenerAnimacion();
     if (this.map) this.map.remove();
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    if (this.audioInterval) clearInterval(this.audioInterval);
+    if (this.audioTruck) {
+      this.audioTruck.pause();
+      this.audioTruck = null;
+    }
+  }
+
+  // -------------------
+  // 🔊 Audio del camión
+  // -------------------
+  private inicializarAudio(): void {
+    // Crear el sonido de pitido del camión de basura
+    // Usamos Web Audio API para generar un sonido sintético
+    this.audioTruck = new Audio();
+    
+    // URL de sonido de camión de basura (puedes reemplazar con tu propio archivo)
+    // Por ahora usamos un beep sintético
+    this.generarSonidoCamion();
+  }
+
+  private generarSonidoCamion(): void {
+    // Genera un sonido tipo "beep beep" del camión de basura
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      const audioContext = new AudioContext();
+      
+      // Función para crear beep
+      const crearBeep = (cuando: number, frecuencia: number, duracion: number) => {
+        const oscilador = audioContext.createOscillator();
+        const ganancia = audioContext.createGain();
+        
+        oscilador.connect(ganancia);
+        ganancia.connect(audioContext.destination);
+        
+        oscilador.frequency.value = frecuencia;
+        oscilador.type = 'square';
+        
+        ganancia.gain.setValueAtTime(0.3, audioContext.currentTime + cuando);
+        ganancia.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + cuando + duracion);
+        
+        oscilador.start(audioContext.currentTime + cuando);
+        oscilador.stop(audioContext.currentTime + cuando + duracion);
+      };
+
+      // Reproducir pitido cada 5 segundos cuando el camión esté en movimiento
+      this.audioInterval = setInterval(() => {
+        if (this.animacionActiva && !this.animacionPausada && audioContext.state === 'running') {
+          // Beep-beep característico del camión de basura
+          crearBeep(0, 800, 0.15);      // Primer beep
+          crearBeep(0.2, 800, 0.15);    // Segundo beep
+          crearBeep(0.4, 600, 0.2);     // Tercer beep más grave
+          
+          console.log('🔊 Beep-beep del camión');
+        }
+      }, 5000); // Cada 5 segundos
+
+    } catch (e) {
+      console.warn('Web Audio API no disponible:', e);
+    }
   }
 
   // -------------------
@@ -156,7 +259,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
         console.log(`📊 Total de rutas recibidas: ${lista.length}`);
 
-        // 🔧 Parsear shape y normalizar coordenadas
+        // Parsear shape y normalizar coordenadas
         this.rutas = lista.map((r, index) => {
           console.log(`\nRuta ${index}: ${r.nombre_ruta}`);
           console.log(`  - shape (tipo): ${typeof r.shape}`);
@@ -181,21 +284,16 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
           let coordinates: [number, number][];
           
           if (shapeObj.type === 'LineString') {
-            // LineString: array directo de coordenadas
             coordinates = shapeObj.coordinates as [number, number][];
             console.log(`  - Tipo: LineString - ${coordinates.length} puntos directos`);
           } else if (shapeObj.type === 'MultiLineString') {
-            // MultiLineString: array de arrays
             const multiCoords = shapeObj.coordinates as [number, number][][];
             console.log(`  - Tipo: MultiLineString - ${multiCoords.length} líneas`);
             
-            // 🔧 SOLUCIÓN: Si el backend devuelve MultiLineString con 1 línea,
-            // extraer esa línea. Si hay múltiples líneas, aplanar todas.
             if (multiCoords.length === 1) {
               coordinates = multiCoords[0];
               console.log(`  - Extrayendo única línea: ${coordinates.length} puntos`);
             } else {
-              // Si hay múltiples líneas, concatenarlas todas
               coordinates = multiCoords.flat();
               console.log(`  - Aplanando ${multiCoords.length} líneas: ${coordinates.length} puntos totales`);
             }
@@ -206,7 +304,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
           console.log(`  ✅ Coordenadas finales: ${coordinates.length} puntos`);
 
-          // Paso 3: Crear shape normalizado como LineString
           const shapeNormalizado: RutaShape = {
             type: 'LineString',
             coordinates: coordinates
@@ -250,7 +347,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   // -------------------
-  // Mostrar ruta guardada (cuando el usuario hace click en la lista)
+  // Mostrar ruta guardada
   // -------------------
   mostrarRuta(ruta: any): void {
     if (!this.map) return;
@@ -258,7 +355,10 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     console.log('🗺️ Mostrando ruta:', ruta.nombre_ruta);
     console.log('  - Shape:', ruta.shape);
 
-    // Normalizar shape por si acaso
+    // Guardar como ruta seleccionada
+    this.rutaSeleccionada = ruta;
+
+    // Normalizar shape
     let shape: RutaShape | null = null;
     if (!ruta) return;
     if (ruta.shape) {
@@ -282,7 +382,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
     console.log(`  ✅ Coordenadas a dibujar: ${shape.coordinates.length} puntos`);
 
-    // Salimos de modo creación para no mezclar
+    // Salimos de modo creación
     this.creandoRuta = false;
 
     // Limpiar capas previas
@@ -298,7 +398,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     // Dibujar polyline de la ruta seleccionada
     this.rutaPolyline = L.polyline(latLngs, { color: '#16a34a', weight: 4 }).addTo(this.map);
 
-    // Añadir marcadores para cada punto (opcional: usar icon pequeño)
+    // Añadir marcadores para cada punto
     latLngs.forEach((p) => {
       const m = L.marker(p, { icon: customMarkerIcon }).addTo(this.map);
       this.puntosMarkers.push(m);
@@ -313,6 +413,194 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     } catch (e) {
       console.warn('fitBounds falló:', e);
     }
+
+    this.mostrarToast(`✅ Ruta "${ruta.nombre_ruta}" cargada`, 'success');
+  }
+
+  // -------------------
+  // 🚗 ANIMACIÓN SUAVE DEL VEHÍCULO
+  // -------------------
+  iniciarAnimacionRuta(): void {
+    // Validar que hay ruta seleccionada
+    if (!this.rutaSeleccionada) {
+      this.mostrarToast('⚠️ Debes seleccionar una ruta primero', 'warning');
+      return;
+    }
+
+    // Validar que la ruta tiene coordenadas
+    const shape: RutaShape = this.rutaSeleccionada.shape;
+    if (!shape || !shape.coordinates || shape.coordinates.length < 2) {
+      this.mostrarToast('⚠️ La ruta seleccionada no tiene suficientes puntos', 'warning');
+      return;
+    }
+
+    // Si ya hay animación activa, detenerla primero
+    if (this.animacionActiva) {
+      this.detenerAnimacion();
+    }
+
+    console.log('🚗 Iniciando animación de ruta:', this.rutaSeleccionada.nombre_ruta);
+    console.log(`   Total de puntos: ${shape.coordinates.length}`);
+
+    // Convertir coordenadas [lng, lat] a LatLng
+    this.coordenadasRecorrido = shape.coordinates.map(
+      (c: [number, number]) => L.latLng(c[1], c[0])
+    );
+
+    // Iniciar desde el principio
+    this.puntoActualIndex = 0;
+    this.progreso = 0;
+    this.ultimaPosicionRegistrada = Date.now();
+
+    // Crear marcador del vehículo en el primer punto
+    const puntoInicial = this.coordenadasRecorrido[0];
+    this.vehicleMarker = L.marker(puntoInicial, { 
+      icon: createVehicleIcon(0),
+      zIndexOffset: 1000
+    }).addTo(this.map);
+
+    // Centrar mapa en el punto inicial
+    this.map.setView(puntoInicial, 16);
+
+    this.animacionActiva = true;
+    this.animacionPausada = false;
+
+    // Iniciar animación suave
+    this.animarMovimientoSuave();
+
+    this.mostrarToast(`🚗 Iniciando recorrido de "${this.rutaSeleccionada.nombre_ruta}"`, 'success');
+  }
+
+  // 🆕 Animación suave usando requestAnimationFrame
+  private animarMovimientoSuave(): void {
+    if (!this.animacionActiva || this.animacionPausada) return;
+
+    const animar = () => {
+      if (!this.animacionActiva || this.animacionPausada) return;
+
+      // Verificar si llegamos al final
+      if (this.puntoActualIndex >= this.coordenadasRecorrido.length - 1) {
+        this.detenerAnimacion();
+        this.mostrarToast('✅ Recorrido completado', 'success');
+        return;
+      }
+
+      // Aumentar progreso
+      this.progreso += this.velocidadAnimacion;
+
+      // Si completamos el segmento actual, pasar al siguiente
+      if (this.progreso >= 1) {
+        this.progreso = 0;
+        this.puntoActualIndex++;
+        
+        // Si llegamos al último punto, detener
+        if (this.puntoActualIndex >= this.coordenadasRecorrido.length - 1) {
+          this.detenerAnimacion();
+          this.mostrarToast('✅ Recorrido completado', 'success');
+          return;
+        }
+      }
+
+      // Interpolar posición entre punto actual y siguiente
+      const puntoA = this.coordenadasRecorrido[this.puntoActualIndex];
+      const puntoB = this.coordenadasRecorrido[this.puntoActualIndex + 1];
+
+      const lat = puntoA.lat + (puntoB.lat - puntoA.lat) * this.progreso;
+      const lng = puntoA.lng + (puntoB.lng - puntoA.lng) * this.progreso;
+      const posicionActual = L.latLng(lat, lng);
+
+      // Calcular rotación
+      const rotation = this.calcularRotacion(puntoA, puntoB);
+
+      // Mover vehículo
+      if (this.vehicleMarker) {
+        this.vehicleMarker.setLatLng(posicionActual);
+        this.vehicleMarker.setIcon(createVehicleIcon(rotation));
+        this.map.panTo(posicionActual);
+      }
+
+      // Registrar posición cada 2 segundos
+      const ahora = Date.now();
+      if (ahora - this.ultimaPosicionRegistrada >= 2000) {
+        this.registrarPosicionEnAPI(posicionActual);
+        this.ultimaPosicionRegistrada = ahora;
+      }
+
+      // Continuar animación
+      this.animacionFrame = requestAnimationFrame(animar);
+    };
+
+    animar();
+  }
+
+  // Calcular ángulo de rotación entre dos puntos
+  private calcularRotacion(desde: L.LatLng, hasta: L.LatLng): number {
+    const dx = hasta.lng - desde.lng;
+    const dy = hasta.lat - desde.lat;
+    const angulo = Math.atan2(dx, dy) * (180 / Math.PI);
+    return angulo;
+  }
+
+  // 📡 Registrar posición en la API
+  private registrarPosicionEnAPI(punto: L.LatLng): void {
+    const recorridoId = this.rutaSeleccionada.id || this.rutaSeleccionada.ruta_id || 'default';
+
+    const payload: RegistrarPosicionPayload = {
+      lat: punto.lat,
+      lon: punto.lng,
+      perfil_id: this.PERFIL_ID
+    };
+
+    console.log('📡 Enviando posición a API:', payload);
+
+    this.rutasService.registrarPosicion(recorridoId, payload).subscribe({
+      next: (resp: any) => {
+        console.log('✅ Posición registrada:', resp);
+      },
+      error: (err: any) => {
+        console.error('❌ Error al registrar posición:', err);
+      }
+    });
+  }
+
+  // Pausar/Reanudar animación
+  pausarReanudarAnimacion(): void {
+    if (!this.animacionActiva) return;
+
+    if (this.animacionPausada) {
+      // Reanudar
+      this.animacionPausada = false;
+      this.ultimaPosicionRegistrada = Date.now();
+      this.animarMovimientoSuave();
+      this.mostrarToast('▶️ Recorrido reanudado', 'success');
+    } else {
+      // Pausar
+      this.animacionPausada = true;
+      if (this.animacionFrame) {
+        cancelAnimationFrame(this.animacionFrame);
+        this.animacionFrame = null;
+      }
+      this.mostrarToast('⏸️ Recorrido pausado', 'warning');
+    }
+  }
+
+  // Detener animación completamente
+  detenerAnimacion(): void {
+    if (this.animacionFrame) {
+      cancelAnimationFrame(this.animacionFrame);
+      this.animacionFrame = null;
+    }
+
+    if (this.vehicleMarker && this.map) {
+      this.map.removeLayer(this.vehicleMarker);
+      this.vehicleMarker = null;
+    }
+
+    this.animacionActiva = false;
+    this.animacionPausada = false;
+    this.puntoActualIndex = 0;
+    this.progreso = 0;
+    console.log('🛑 Animación detenida');
   }
 
   // -------------------
@@ -355,14 +643,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       next: (resp: any) => {
         console.log('Respuesta de la API al crear ruta:', resp);
 
-        // Normalizar la respuesta según estructura esperada: resp.data o resp
         const nueva = resp?.data ? resp.data : resp;
 
-        console.log('Ruta guardada:', nueva);
-        console.log('Puntos guardados en el backend:', this.puntosRuta.length);
-        console.log(' - nombre:', nueva.nombre_ruta);
-
-        // Si la API devuelve shape como string, parsearlo:
         let shapeReturned: RutaShape = { type: 'LineString', coordinates: [] };
         if (nueva?.shape) {
           if (typeof nueva.shape === 'string') {
@@ -376,17 +658,14 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
           }
         }
 
-        // Construir objeto de ruta para el frontend y añadirlo al listado local
         const rutaFront = {
           ...nueva,
           shape: shapeReturned
         };
 
-        // Añadir al listado local para que aparezca en el sidebar sin recargar
         this.rutas.unshift(rutaFront);
 
-        // Mostrar la ruta nueva inmediatamente
-        this.limpiarSoloCapas(); // limpiar lo que haya
+        this.limpiarSoloCapas();
         this.mostrarRuta(rutaFront);
 
         this.creandoRuta = false;
@@ -451,10 +730,12 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
   limpiarMapa(): void {
     if (!this.map) return;
+    this.detenerAnimacion();
     this.limpiarSoloCapas();
     this.puntosRuta = [];
     this.creandoRuta = false;
     this.nombreRuta = '';
+    this.rutaSeleccionada = null;
     console.log('Mapa limpiado (ruta actual eliminada)');
   }
 
