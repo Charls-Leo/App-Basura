@@ -31,6 +31,7 @@
     "@angular/platform-server": "^20.3.0",
     "@angular/router": "^20.3.0",
     "@angular/ssr": "^20.3.4",
+    "@supabase/supabase-js": "^2.86.2",
     "express": "^5.1.0",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",

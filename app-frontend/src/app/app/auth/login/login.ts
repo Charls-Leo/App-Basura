@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { UsuariosService } from '../../../services/usuario';
+import { SupabaseService } from '../../../services/supabase.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [FormsModule, CommonModule],
-  templateUrl: './login.html', 
-  styleUrls: ['./login.css']     
+  templateUrl: './login.html',
+  styleUrls: ['./login.css']
 })
 export class LoginComponent {
   correo: string = '';
@@ -19,10 +19,10 @@ export class LoginComponent {
 
   constructor(
     private router: Router,
-    private usuariosService: UsuariosService
-  ) {}
+    private supabaseService: SupabaseService
+  ) { }
 
-  iniciarSesion() {
+  async iniciarSesion() {
     // Limpiar mensaje de error
     this.mensajeError = '';
 
@@ -36,56 +36,45 @@ export class LoginComponent {
     const correoLimpio = this.correo.trim();
     const contrasenaLimpia = this.contrasena.trim();
 
-    console.log(' Intentando login con:', { 
-      email: correoLimpio, 
-      passwordLength: contrasenaLimpia.length 
-    });
+    console.log('🔐 Intentando login con Supabase:', { email: correoLimpio });
 
     this.cargando = true;
 
-    this.usuariosService.loginUsuario({
-      email: correoLimpio,
-      password: contrasenaLimpia
-    }).subscribe({
-      next: (response: any) => {
-        console.log(' Respuesta del servidor:', response);
-        
-        // Guardar datos del usuario en localStorage
-        localStorage.setItem('usuario', JSON.stringify(response.usuario));
-        localStorage.setItem('usuarioId', response.usuario.id);
-        localStorage.setItem('usuarioNombre', response.usuario.nombre);
-        localStorage.setItem('usuarioRol', response.usuario.rol);
-        
-        this.cargando = false;
-        // después de guardar en localStorage
-        console.log('ROL guardado en localStorage ->', localStorage.getItem('usuarioRol'));
+    try {
+      const { user } = await this.supabaseService.signIn(correoLimpio, contrasenaLimpia);
 
-        // Redirección según el rol
-        const rol = (response.usuario.rol || '').toLowerCase();
+      console.log('✅ Login exitoso:', user?.email);
 
-        if (rol === 'admin' || rol === 'administrador') {
-          console.log('➡️ Usuario administrador -> Dashboard');
-          this.router.navigate(['/dashboard']);
-        } else {
-          console.log('➡️ Usuario normal -> Mapa');
-          this.router.navigate(['/mapa']);
-        }
-      },
-      error: (error: any) => {
-        console.error(' Error en login:', error);
-        this.cargando = false;
-        
-        if (error.status === 401) {
-          this.mensajeError = 'Correo o contraseña incorrectos';
-        } else if (error.status === 400) {
-          this.mensajeError = 'Por favor completa todos los campos';
-        } else if (error.status === 0) {
-          this.mensajeError = 'No se pudo conectar con el servidor. Verifica que esté corriendo.';
-        } else {
-          this.mensajeError = 'Error al iniciar sesión. Intenta de nuevo.';
-        }
+      // Esperar a que se cargue el perfil
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const profile = this.supabaseService.currentProfileValue;
+      console.log('👤 Perfil cargado:', profile);
+
+      this.cargando = false;
+
+      // Redirección según el rol
+      const rol = (profile?.rol || '').toLowerCase();
+
+      if (rol === 'admin' || rol === 'administrador') {
+        console.log('➡️ Usuario administrador -> Dashboard');
+        this.router.navigate(['/dashboard']);
+      } else {
+        console.log('➡️ Usuario normal -> Mapa');
+        this.router.navigate(['/mapa']);
       }
-    });
+    } catch (error: any) {
+      console.error('❌ Error en login:', error);
+      this.cargando = false;
+
+      if (error.message?.includes('Invalid login credentials')) {
+        this.mensajeError = 'Correo o contraseña incorrectos';
+      } else if (error.message?.includes('Email not confirmed')) {
+        this.mensajeError = 'Por favor confirma tu email antes de iniciar sesión';
+      } else {
+        this.mensajeError = 'Error al iniciar sesión. Intenta de nuevo.';
+      }
+    }
   }
 
   irARegistro() {

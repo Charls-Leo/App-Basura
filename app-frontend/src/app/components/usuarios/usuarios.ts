@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UsuariosService } from '../../services/usuario';
+import { SupabaseService } from '../../services/supabase.service';
 import { ProfesorApiService } from '../../services/ProfeAPI.service';
 
 @Component({
@@ -11,23 +11,39 @@ import { ProfesorApiService } from '../../services/ProfeAPI.service';
 })
 export class UsuarioComponent implements OnInit {
   usuarios: any[] = [];
-  calles: any[] = []; // ← nuevo
+  calles: any[] = [];
+  cargando: boolean = false;
+  error: string = '';
 
   constructor(
-    private usuarioService: UsuariosService,
+    private supabaseService: SupabaseService,
     private profesorApiService: ProfesorApiService
-  ) {}
+  ) { }
 
-  ngOnInit(): void {
-    // Tus usuarios del backend propio
-    this.usuarioService.obtenerUsuarios().subscribe(data => {
-      this.usuarios = data;
-    });
+  async ngOnInit(): Promise<void> {
+    await this.cargarUsuarios();
+    this.cargarCalles();
+  }
 
-    // Calles de la API del profesor
+  async cargarUsuarios() {
+    this.cargando = true;
+    this.error = '';
+
+    try {
+      this.usuarios = await this.supabaseService.getProfiles();
+      console.log('✅ Usuarios cargados desde Supabase:', this.usuarios.length);
+    } catch (err: any) {
+      console.error('❌ Error al obtener usuarios:', err);
+      this.error = 'Error al cargar usuarios';
+    } finally {
+      this.cargando = false;
+    }
+  }
+
+  cargarCalles() {
     this.profesorApiService.getCalles().subscribe({
       next: (resp: any) => {
-        this.calles = resp.data; // porque la API devuelve { data: [...] }
+        this.calles = resp.data;
         console.log('Calles del profesor:', this.calles);
       },
       error: (err) => {
