@@ -15,13 +15,13 @@ export class VehiculosComponent implements OnInit {
   vehiculos: any[] = [];
   perfil_id: string = "a4cdc1ca-5e37-40b1-8a4b-d26237e25142";
 
-  // Modal
+  // Modal de crear / editar vehículo
   isModalOpen = false;
   modoEditar = false;
 
   // Formulario visual
   vehicleForm = {
-    id: null,
+    id: null as string | null,
     plate: '',
     brand: '',
     model: '',
@@ -29,11 +29,27 @@ export class VehiculosComponent implements OnInit {
     perfil_id: this.perfil_id
   };
 
+  // Modal de feedback (éxito / info / error grande en el centro)
+  feedbackVisible = false;
+  feedbackTitle = '';
+  feedbackMessage = '';
+  feedbackIcon = '✅';
 
   constructor(private vehiculoService: VehiculosService) {}
 
   ngOnInit() {
     this.cargarVehiculos();
+  }
+
+  private openFeedback(title: string, message: string, icon: string = '✅') {
+    this.feedbackTitle = title;
+    this.feedbackMessage = message;
+    this.feedbackIcon = icon;
+    this.feedbackVisible = true;
+  }
+
+  closeFeedback() {
+    this.feedbackVisible = false;
   }
 
   cargarVehiculos() {
@@ -47,11 +63,14 @@ export class VehiculosComponent implements OnInit {
           status: v.activo ? "Activo" : "Inactivo"
         }));
       },
-      error: (err) => console.error("Error al listar vehículos:", err)
+      error: (err) => {
+        console.error("Error al listar vehículos:", err);
+        this.openFeedback('Error', 'Ocurrió un error al cargar los vehículos.', '⚠️');
+      }
     });
   }
 
-  // ABRIR MODAL
+  // ABRIR MODAL CREAR / EDITAR
   openModal(vehicle?: any) {
     this.isModalOpen = true;
 
@@ -114,9 +133,20 @@ export class VehiculosComponent implements OnInit {
       this.vehiculoService.actualizarVehiculo(this.vehicleForm.id, data)
         .subscribe({
           next: () => {
-            alert("Vehículo actualizado correctamente");
             this.cargarVehiculos();
             this.closeModal();
+            this.openFeedback(
+              'Vehículo actualizado',
+              'El vehículo se actualizó correctamente.',
+              '✅'
+            );
+          },
+          error: () => {
+            this.openFeedback(
+              'Error al actualizar',
+              'Ocurrió un error al actualizar el vehículo.',
+              '⚠️'
+            );
           }
         });
     }
@@ -125,9 +155,20 @@ export class VehiculosComponent implements OnInit {
       this.vehiculoService.crearVehiculo(data)
         .subscribe({
           next: () => {
-            alert("Vehículo creado correctamente");
             this.cargarVehiculos();
             this.closeModal();
+            this.openFeedback(
+              'Vehículo creado',
+              'El vehículo se creó correctamente.',
+              '🚛'
+            );
+          },
+          error: () => {
+            this.openFeedback(
+              'Error al crear',
+              'Ocurrió un error al crear el vehículo.',
+              '⚠️'
+            );
           }
         });
     }
@@ -137,9 +178,22 @@ export class VehiculosComponent implements OnInit {
     if (!confirm("¿Seguro que deseas eliminarlo?")) return;
 
     this.vehiculoService.eliminarVehiculo(id, this.perfil_id)
-      .subscribe(() => {
-        alert("Vehículo eliminado");
-        this.cargarVehiculos();
+      .subscribe({
+        next: () => {
+          this.cargarVehiculos();
+          this.openFeedback(
+            'Vehículo eliminado',
+            'El vehículo fue eliminado correctamente.',
+            '🗑️'
+          );
+        },
+        error: () => {
+          this.openFeedback(
+            'Error al eliminar',
+            'Ocurrió un error al eliminar el vehículo.',
+            '⚠️'
+          );
+        }
       });
   }
 

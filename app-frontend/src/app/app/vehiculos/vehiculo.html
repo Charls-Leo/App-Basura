@@ -65,6 +65,29 @@
   </div>
 </div>
 
+<!-- Modal de feedback (éxito / info / error) -->
+<div class="feedback-backdrop" *ngIf="feedbackVisible">
+  <div class="feedback-card">
+    <div class="feedback-header">
+      <div class="feedback-icon">{{ feedbackIcon }}</div>
+      <h2 class="feedback-title">{{ feedbackTitle }}</h2>
+      <button class="feedback-close" (click)="closeFeedback()">×</button>
+    </div>
+
+    <p class="feedback-message">
+      {{ feedbackMessage }}
+    </p>
+
+    <div class="feedback-actions">
+      <button class="feedback-button" (click)="closeFeedback()">
+        Aceptar
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
 <!-- Modal -->
 <div class="modal" [class.active]="isModalOpen" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
