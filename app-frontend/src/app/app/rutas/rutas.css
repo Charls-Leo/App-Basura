@@ -1,5 +1,14 @@
 .rutas-container {
-  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.rutas-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 16px;
 }
 
 .placeholder-box {
@@ -10,4 +19,71 @@
   border: 1px dashed #888;
   text-align: center;
   color: #555;
+}
+
+/* Grid de rutas */
+.lista-rutas {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* Tarjeta de ruta */
+.ruta-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+}
+
+/* Header */
+.ruta-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ruta-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.ruta-nombre {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ruta-id {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  word-break: break-all;
+}
+
+/* Cuerpo */
+.ruta-body p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .rutas-container {
+    padding: 20px 12px;
+  }
+
+  .rutas-title {
+    font-size: 22px;
+  }
 }

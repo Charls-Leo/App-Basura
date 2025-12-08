@@ -1,5 +1,5 @@
 <div class="rutas-container">
-  <h1>🚚 Rutas Registradas</h1>
+  <h1 class="rutas-title">🚚 Rutas registradas</h1>
 
   <!-- Si NO hay rutas -->
   <div *ngIf="rutas.length === 0" class="placeholder-box">
@@ -9,10 +9,25 @@
   <!-- Lista real -->
   <div *ngIf="rutas.length > 0" class="lista-rutas">
     <div class="ruta-card" *ngFor="let r of rutas">
-      <h3>📍 {{ r.nombre_ruta }}</h3>
-      <p><strong>ID:</strong> {{ r.id }}</p>
-      <p><strong>Puntos:</strong> {{ r.shape.coordinates.length }}</p>
-      <p><strong>Última actualización:</strong> {{ r.updated_at | date:'short' }}</p>
+      <div class="ruta-header">
+        <div class="ruta-icon">📍</div>
+        <div>
+          <h3 class="ruta-nombre">{{ r.nombre_ruta }}</h3>
+          <p class="ruta-id">ID: {{ r.id }}</p>
+        </div>
+      </div>
+
+      <div class="ruta-body">
+        <p>
+          <strong>Puntos de la ruta:</strong>
+          {{ r.puntos }}
+        </p>
+
+        <p *ngIf="r.updated_at">
+          <strong>Última actualización:</strong>
+          {{ r.updated_at | date:'short' }}
+        </p>
+      </div>
     </div>
   </div>
 </div>

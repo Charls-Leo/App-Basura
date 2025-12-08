@@ -34,7 +34,7 @@ export class RutasComponent implements OnInit {
         else if (Array.isArray(resp.rutas)) lista = resp.rutas;
         else lista = [];
 
-        // Normalizamos el shape
+        // Normalizamos el shape y calculamos puntos
         this.rutas = lista.map((r) => {
           let shape: RutaShape;
 
@@ -48,12 +48,42 @@ export class RutasComponent implements OnInit {
             shape = r.shape;
           }
 
-          return { ...r, shape };
+          const puntos = this.contarPuntos(shape);
+
+          return {
+            ...r,
+            shape,
+            puntos
+          };
         });
       },
       error: (err) => {
         console.error('Error cargando rutas:', err);
       }
     });
+  }
+
+  /** Cuenta correctamente los puntos según el tipo de GeoJSON */
+  private contarPuntos(shape?: RutaShape): number {
+    if (!shape || !shape.coordinates) return 0;
+
+    // LineString: coordinates = [ [lng,lat], [lng,lat], ... ]
+    if (shape.type === 'LineString') {
+      return Array.isArray(shape.coordinates) ? shape.coordinates.length : 0;
+    }
+
+    // MultiLineString: coordinates = [ [ [lng,lat], ... ], [ [lng,lat], ... ], ... ]
+    if (shape.type === 'MultiLineString') {
+      if (!Array.isArray(shape.coordinates)) return 0;
+
+      return shape.coordinates.reduce((total: number, segmento: any) => {
+        if (Array.isArray(segmento)) {
+          return total + segmento.length;
+        }
+        return total;
+      }, 0);
+    }
+
+    return 0;
   }
 }
